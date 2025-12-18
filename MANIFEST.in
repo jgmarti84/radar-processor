@@ -1,0 +1,18 @@
+# Manifest file for source distributions
+
+include README.md
+include LICENSE
+include CHANGELOG.md
+include pyproject.toml
+include setup.py
+
+recursive-include src/radar_cog_processor *.py
+recursive-include tests *.py
+recursive-include examples *.py
+
+exclude .gitignore
+exclude .DS_Store
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * *.tif
+recursive-exclude * *.nc

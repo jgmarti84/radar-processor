@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "radar-cog-processor"
+version = "0.1.0"
+description = "A Python package for processing meteorological radar NetCDF files into Cloud-Optimized GeoTIFFs (COG)"
+readme = "README.md"
+authors = [
+    {name = "Radar Visualization Team", email = "your-email@example.com"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.20.0",
+    "arm_pyart @ git+https://github.com/IgnaCat/pyart.git@84f411ae86e05b14fc075b8f6535af84c8bba2c9",
+    "rasterio>=1.3.0",
+    "pyproj>=3.0.0",
+    "affine>=2.0.0",
+    "cachetools>=5.0.0",
+    "matplotlib>=3.5.0",
+    "GDAL==3.10.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=3.0.0",
+    "black>=22.0.0",
+    "flake8>=4.0.0",
+    "mypy>=0.950",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/radar-cog-processor"
+Repository = "https://github.com/yourusername/radar-cog-processor"
+Documentation = "https://github.com/yourusername/radar-cog-processor/blob/main/README.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311']
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=radar_cog_processor --cov-report=html --cov-report=term-missing"

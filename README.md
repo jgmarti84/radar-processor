@@ -1,0 +1,300 @@
+# Radar COG Processor
+
+A Python package for processing meteorological radar NetCDF files into Cloud-Optimized GeoTIFFs (COG).
+
+## Overview
+
+`radar-cog-processor` provides efficient processing of weather radar data, converting raw NetCDF files into web-optimized COG format. It implements intelligent caching for both 2D and 3D grids, supports multiple radar products (PPI, CAPPI, COLMAX), and offers flexible filtering and colormap customization.
+
+## Features
+
+- **Multiple Radar Products**: PPI (Plan Position Indicator), CAPPI (Constant Altitude PPI), COLMAX (Composite Maximum)
+- **Multi-field Support**: Process various radar fields (reflectivity, velocity, correlation coefficient, etc.)
+- **Intelligent Caching**: Two-tier LRU cache system (2D and 3D grids) for efficient repeated processing
+- **Quality Control Filters**: Apply filters during gridding or as post-processing masks
+- **Custom Colormaps**: Built-in radar-specific colormaps with override capability
+- **COG Optimization**: Generates Cloud-Optimized GeoTIFFs with overviews for fast web serving
+
+## Installation
+
+### From Source
+
+```bash
+git clone https://github.com/yourusername/radar-cog-processor.git
+cd radar-cog-processor
+pip install -e .
+```
+
+### Dependencies
+
+The package requires:
+- Python >= 3.9
+- PyART (Py-ART radar toolkit)
+- Rasterio (geospatial raster I/O)
+- NumPy
+- PyProj
+- Affine
+- Matplotlib
+- Cachetools
+
+For development:
+```bash
+pip install -e ".[dev]"
+```
+
+## Quick Start
+
+### Basic Usage
+
+```python
+from radar_cog_processor import process_radar_to_cog
+
+# Process a radar file
+result = process_radar_to_cog(
+    filepath="radar_file.nc",
+    product="PPI",
+    field_requested="DBZH",  # Reflectivity
+    elevation=0,
+    output_dir="output"
+)
+
+print(f"COG created: {result['image_url']}")
+```
+
+### With Quality Control Filters
+
+```python
+class RangeFilter:
+    def __init__(self, field, min_val=None, max_val=None):
+        self.field = field
+        self.min = min_val
+        self.max = max_val
+
+# Filter out low correlation values
+filters = [
+    RangeFilter(field="RHOHV", min_val=0.8, max_val=1.0)
+]
+
+result = process_radar_to_cog(
+    filepath="radar_file.nc",
+    product="PPI",
+    field_requested="DBZH",
+    elevation=0,
+    filters=filters,
+    output_dir="output"
+)
+```
+
+### Custom Colormaps
+
+```python
+# Override default colormap
+colormap_overrides = {
+    "DBZH": "grc_th2",  # Alternative reflectivity colormap
+}
+
+result = process_radar_to_cog(
+    filepath="radar_file.nc",
+    product="PPI",
+    field_requested="DBZH",
+    elevation=0,
+    colormap_overrides=colormap_overrides,
+    output_dir="output"
+)
+```
+
+## Supported Radar Products
+
+### PPI (Plan Position Indicator)
+Displays radar data at a specific elevation angle, following the curvature of the radar beam.
+
+```python
+result = process_radar_to_cog(
+    filepath="radar_file.nc",
+    product="PPI",
+    elevation=0,  # Elevation angle index (0 = lowest)
+    field_requested="DBZH"
+)
+```
+
+### CAPPI (Constant Altitude Plan Position Indicator)
+Horizontal slice at a constant altitude above ground level.
+
+```python
+result = process_radar_to_cog(
+    filepath="radar_file.nc",
+    product="CAPPI",
+    cappi_height=4000,  # Height in meters
+    field_requested="DBZH"
+)
+```
+
+### COLMAX (Composite Maximum)
+Maximum reflectivity value across all elevation angles.
+
+```python
+result = process_radar_to_cog(
+    filepath="radar_file.nc",
+    product="COLMAX",
+    field_requested="DBZH"
+)
+```
+
+## Supported Radar Fields
+
+| Field | Aliases | Description | Default Range |
+|-------|---------|-------------|---------------|
+| DBZH | DBZH, corrected_reflectivity_horizontal | Horizontal reflectivity | -30 to 70 dBZ |
+| ZDR | ZDR, zdr | Differential reflectivity | -5 to 10.5 dBZ |
+| RHOHV | RHOHV, rhohv | Cross-correlation coefficient | 0 to 1 |
+| KDP | KDP, kdp | Specific differential phase | 0 to 8 deg/km |
+| VRAD | VRAD, velocity, corrected_velocity | Radial velocity | -35 to 35 m/s |
+| WRAD | WRAD, spectrum_width | Spectrum width | 0 to 10 m/s |
+| PHIDP | PHIDP, differential_phase | Differential phase | 0 to 360 deg |
+
+## Caching System
+
+The package implements a two-tier LRU cache:
+
+### 3D Grid Cache (600 MB limit)
+- Stores full 3D interpolated grids
+- Shared between PPI/CAPPI/COLMAX products
+- Keyed by file, field, volume, QC filters, and grid parameters
+
+### 2D Grid Cache (200 MB limit)
+- Stores collapsed 2D grids
+- Product-specific (different cache entries for PPI vs CAPPI)
+- Includes both local CRS and warped (Web Mercator) versions
+
+**Note**: Filters do NOT affect cache keys. Visual filters are applied as post-grid masks.
+
+## Custom Colormaps
+
+Available custom colormaps:
+- `grc_th`, `grc_th2`: Reflectivity
+- `grc_rain`: Rain rate
+- `grc_rho`: Correlation coefficient
+- `grc_zdr`, `grc_zdr2`: Differential reflectivity
+- `grc_vrad`: Radial velocity
+
+PyART colormaps can be used with `pyart_` prefix (e.g., `pyart_NWSRef`).
+
+## API Reference
+
+### `process_radar_to_cog()`
+
+Main processing function.
+
+**Parameters:**
+- `filepath` (str): Path to radar NetCDF file
+- `product` (str): Product type - 'PPI', 'CAPPI', or 'COLMAX'
+- `field_requested` (str): Field to process (e.g., 'DBZH', 'ZDR')
+- `cappi_height` (int): Height in meters for CAPPI (default: 4000)
+- `elevation` (int): Elevation angle index for PPI (default: 0)
+- `filters` (list, optional): List of filter objects
+- `output_dir` (str): Output directory for COG files
+- `volume` (str, optional): Volume identifier for resolution selection
+- `colormap_overrides` (dict, optional): Field-to-colormap mapping
+
+**Returns:**
+Dictionary with:
+- `image_url`: Path to generated COG file
+- `field`: Processed field name
+- `source_file`: Original NetCDF filepath
+- `tilejson_url`: URL template for tile server
+
+**Example:**
+```python
+result = process_radar_to_cog(
+    filepath="RMA1_0315_01_20250819T001715Z.nc",
+    product="PPI",
+    field_requested="DBZH",
+    elevation=0,
+    output_dir="output/cogs"
+)
+```
+
+## Examples
+
+See the `examples/` directory for complete examples:
+- `basic_usage.py`: Simple single-file processing
+- `advanced_usage.py`: Multiple fields, filters, custom colormaps
+- `batch_processing.py`: Batch processing with parallelization
+
+## Testing
+
+Run tests with pytest:
+
+```bash
+pytest tests/
+```
+
+With coverage:
+
+```bash
+pytest tests/ --cov=radar_cog_processor --cov-report=html
+```
+
+## Performance Tips
+
+1. **Cache Reuse**: Process files with the same parameters to benefit from caching
+2. **Volume Selection**: Use `volume='03'` for higher resolution (300m vs 1200m)
+3. **Filter Strategy**: 
+   - QC filters (RHOHV) applied during gridding (slower but more accurate)
+   - Visual filters applied as masks (faster)
+4. **Batch Processing**: Use parallel processing for multiple files (see `examples/batch_processing.py`)
+
+## Architecture Notes
+
+### Processing Pipeline
+
+1. **Read**: Load NetCDF file with PyART
+2. **Grid**: Interpolate to 3D Cartesian grid (cached)
+3. **Collapse**: Reduce 3D to 2D based on product type (cached)
+4. **Filter**: Apply QC filters during gridding, visual filters as masks
+5. **Colormap**: Apply colormap and generate RGB GeoTIFF
+6. **Optimize**: Convert to COG with overviews
+
+### File Naming Convention
+
+COG files follow this pattern:
+```
+radar_{FIELD}_{PRODUCT}_{FILTERS}_{AUX}_{HASH}_{CMAP}.tif
+```
+
+Example: `radar_DBZH_PPI_nofilter_0_abc123def456.tif`
+
+## Contributing
+
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Credits
+
+Developed as part of the Radar Visualization Tool project at FAMAF, Universidad Nacional de Córdoba.
+
+Based on:
+- Py-ART (Python ARM Radar Toolkit)
+- Custom fork: https://github.com/IgnaCat/pyart
+
+## Contact
+
+For questions or issues, please open an issue on GitHub.
+
+## Changelog
+
+### Version 0.1.0 (Initial Release)
+- Core processing functionality
+- PPI, CAPPI, COLMAX products
+- Two-tier caching system
+- Custom colormaps
+- Quality control filtering
+- Comprehensive test suite
