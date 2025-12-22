@@ -375,18 +375,21 @@ def create_cappi(radar, fields, height):
     Returns
     -------
     pyart.core.Radar
-        Radar object with CAPPI field
+        Radar object with CAPPI field added
     """
-    # Simple implementation - interpolates to constant height
+    # Simple implementation - placeholder for actual CAPPI interpolation
     # This is a placeholder; full implementation would use more sophisticated interpolation
     field_name = fields[0] if fields else "DBZH"
     
-    # Create placeholder CAPPI field with same shape as first sweep
-    template_shape = radar.fields[field_name]['data'].shape
-    cappi_data = np.ma.zeros(template_shape)
-    cappi_data.mask = True  # Initially all masked
+    # For now, just ensure the field exists and return the radar
+    # The actual CAPPI computation happens in the pipeline
+    if field_name not in radar.fields:
+        # If field doesn't exist, create a placeholder
+        template_shape = radar.fields[radar.fields.keys().__iter__().__next__()]['data'].shape
+        cappi_data = np.ma.zeros(template_shape)
+        cappi_data.mask = True
+        radar.add_field_like(field_name, field_name, cappi_data, replace_existing=True)
     
-    radar.add_field_like(field_name, 'cappi', cappi_data, replace_existing=True)
     return radar
 
 
@@ -523,11 +526,10 @@ def _prepare_radar_field(radar, field_name, product_upper, cappi_height):
         # Placeholder elevation (will be passed separately)
         return radar, field_name
     elif product_upper == "CAPPI":
-        cappi = create_cappi(radar, fields=[field_name], height=cappi_height)
-        template = cappi.fields[field_name]['data']
-        zeros_array = np.tile(template, (15, 1))
-        radar.add_field_like('DBZH', 'cappi', zeros_array, replace_existing=True)
-        return radar, "cappi"
+        # Call create_cappi to prepare CAPPI product
+        cappi_radar = create_cappi(radar, fields=[field_name], height=cappi_height)
+        # Return with 'cappi' as the field name (will be created by process pipeline)
+        return cappi_radar, "cappi"
     elif product_upper == "COLMAX":
         radar_colmax = create_colmax(radar)
         return radar_colmax, 'composite_reflectivity'

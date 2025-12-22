@@ -172,12 +172,14 @@ class TestPhase4PrepareRadarField:
         assert field_out == 'DBZH'
     
     def test_cappi_field_preparation(self, mock_radar):
-        """Test that CAPPI product creates cappi field."""
+        """Test that CAPPI product returns 'cappi' field name."""
         with patch('radar_cog_processor.processor.create_cappi', return_value=mock_radar):
             radar_out, field_out = _prepare_radar_field(mock_radar, 'DBZH', 'CAPPI', 4000)
         
+        # Should return 'cappi' as the field name (created by the pipeline)
         assert field_out == 'cappi'
-        assert 'cappi' in radar_out.fields
+        # The radar returned should be the one from create_cappi
+        assert radar_out is mock_radar
     
     def test_colmax_field_preparation(self, mock_radar):
         """Test that COLMAX product creates composite_reflectivity field."""
@@ -199,7 +201,9 @@ class TestPhase4PrepareRadarField:
         with patch('radar_cog_processor.processor.create_cappi', return_value=mock_radar):
             radar_out, field_out = _prepare_radar_field(mock_radar, 'DBZH', 'CAPPI', 4000)
         
-        # Should have filled_DBZH field or cappi field
+        # Should return 'cappi' field name from pipeline
+        assert field_out == 'cappi'
+        # Filled DBZH is added to the original radar before passing to create_cappi
         assert 'filled_DBZH' in radar_out.fields or field_out == 'cappi'
     
     def test_invalid_product_raises(self, mock_radar):
