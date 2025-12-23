@@ -348,7 +348,7 @@ def collapse_grid_to_2d(grid, field, product, *,
 
     # Re-mask
     arr2d = np.ma.masked_invalid(arr2d)
-    if field in ["filled_DBZH", "DBZH", "DBZV", "DBZHF", "composite_reflectivity", "cappi"]:
+    if field in ["filled_DBZH", "DBZH", "DBZV", "DBZHF", "composite_reflectivity"]:
         arr2d = np.ma.masked_less_equal(arr2d, vmin)
     elif field in ["KDP", "ZDR"]:
         arr2d = np.ma.masked_less(arr2d, vmin)
@@ -526,10 +526,9 @@ def _prepare_radar_field(radar, field_name, product_upper, cappi_height):
         # Placeholder elevation (will be passed separately)
         return radar, field_name
     elif product_upper == "CAPPI":
-        # Call create_cappi to prepare CAPPI product
-        cappi_radar = create_cappi(radar, fields=[field_name], height=cappi_height)
-        # Return with 'cappi' as the field name (will be created by process pipeline)
-        return cappi_radar, "cappi"
+        # For CAPPI, use the same radar and field - CAPPI is just a different 
+        # way of collapsing the 3D grid (constant altitude slice)
+        return radar, field_name
     elif product_upper == "COLMAX":
         radar_colmax = create_colmax(radar)
         return radar_colmax, 'composite_reflectivity'

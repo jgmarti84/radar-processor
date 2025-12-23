@@ -21,7 +21,7 @@ class RangeFilter:
 
 def process_with_filters():
     """Process radar data with quality control filters."""
-    radar_file = "path/to/your/radar_file.nc"
+    radar_file = "data/netcdf/RMA3_0315_01_20251215T231006Z.nc"
     output_dir = "output/filtered"
     
     # Define quality control filters
@@ -44,7 +44,7 @@ def process_with_filters():
 
 def process_multiple_fields():
     """Process multiple radar fields."""
-    radar_file = "path/to/your/radar_file.nc"
+    radar_file = "data/netcdf/RMA3_0315_01_20251215T231006Z.nc"
     output_dir = "output/multi_field"
     
     # List of fields to process
@@ -71,7 +71,7 @@ def process_multiple_fields():
 
 def process_with_custom_colormap():
     """Process with custom colormap selection."""
-    radar_file = "path/to/your/radar_file.nc"
+    radar_file = "data/netcdf/RMA3_0315_01_20251215T231006Z.nc"
     output_dir = "output/custom_cmap"
     
     # Override default colormap
@@ -93,7 +93,7 @@ def process_with_custom_colormap():
 
 def process_different_products():
     """Process different radar products."""
-    radar_file = "path/to/your/radar_file.nc"
+    radar_file = "data/netcdf/RMA3_0315_01_20251215T231006Z.nc"
     output_dir = "output/products"
     
     # PPI at different elevations

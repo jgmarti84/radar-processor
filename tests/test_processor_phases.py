@@ -172,13 +172,13 @@ class TestPhase4PrepareRadarField:
         assert field_out == 'DBZH'
     
     def test_cappi_field_preparation(self, mock_radar):
-        """Test that CAPPI product returns 'cappi' field name."""
-        with patch('radar_cog_processor.processor.create_cappi', return_value=mock_radar):
-            radar_out, field_out = _prepare_radar_field(mock_radar, 'DBZH', 'CAPPI', 4000)
+        """Test that CAPPI product returns filled_DBZH field name for DBZH."""
+        radar_out, field_out = _prepare_radar_field(mock_radar, 'DBZH', 'CAPPI', 4000)
         
-        # Should return 'cappi' as the field name (created by the pipeline)
-        assert field_out == 'cappi'
-        # The radar returned should be the one from create_cappi
+        # For CAPPI with DBZH, should return 'filled_DBZH' (filled reflectivity)
+        # CAPPI is just a different collapse method, not a separate field
+        assert field_out == 'filled_DBZH'
+        # The radar returned should be the original radar
         assert radar_out is mock_radar
     
     def test_colmax_field_preparation(self, mock_radar):
@@ -197,14 +197,13 @@ class TestPhase4PrepareRadarField:
         assert field_out == 'composite_reflectivity'
     
     def test_filled_reflectivity_for_cappi(self, mock_radar):
-        """Test that CAPPI/COLMAX creates filled reflectivity."""
-        with patch('radar_cog_processor.processor.create_cappi', return_value=mock_radar):
-            radar_out, field_out = _prepare_radar_field(mock_radar, 'DBZH', 'CAPPI', 4000)
+        """Test that CAPPI creates filled reflectivity for DBZH."""
+        radar_out, field_out = _prepare_radar_field(mock_radar, 'DBZH', 'CAPPI', 4000)
         
-        # Should return 'cappi' field name from pipeline
-        assert field_out == 'cappi'
-        # Filled DBZH is added to the original radar before passing to create_cappi
-        assert 'filled_DBZH' in radar_out.fields or field_out == 'cappi'
+        # Should return 'filled_DBZH' field name since DBZH is filled for CAPPI/COLMAX
+        assert field_out == 'filled_DBZH'
+        # add_field_like should have been called to add filled_DBZH
+        mock_radar.add_field_like.assert_called_once()
     
     def test_invalid_product_raises(self, mock_radar):
         """Test that invalid product type raises ValueError."""
