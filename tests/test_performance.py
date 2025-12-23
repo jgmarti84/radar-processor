@@ -8,13 +8,15 @@ Usage:
     python -m pytest tests/test_performance.py -v -s
     python -m pytest tests/test_performance.py::TestPerformanceBenchmarks -v --tb=short
 """
+import pytest
+
 import time
 import json
 import os
 from pathlib import Path
 from typing import Dict, Tuple, List
 import numpy as np
-import pytest
+
 from unittest.mock import patch, MagicMock
 import cProfile
 import pstats
@@ -45,7 +47,7 @@ class PerformanceTimer:
         return self
     
     def __exit__(self, *args):
-        self.elapsed = time.perf_counter() - self.start_time
+        self.elapsed = time.perf_counter() - self.start_time # type: ignore
         print(f"  {self.name}: {self.elapsed:.4f}s")
     
     def __repr__(self):
@@ -59,7 +61,7 @@ class BenchmarkResults:
         self.results = {}
         self.measurements = []
     
-    def record(self, test_name: str, legacy_time: float, optimized_time: float, metadata: Dict = None):
+    def record(self, test_name: str, legacy_time: float, optimized_time: float, metadata: Dict = None): # type: ignore
         """Record a benchmark measurement."""
         speedup = legacy_time / optimized_time if optimized_time > 0 else float('inf')
         improvement = ((legacy_time - optimized_time) / legacy_time * 100) if legacy_time > 0 else 0
@@ -125,7 +127,7 @@ class ProfileHelper:
         ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
         ps.print_stats(10)  # Top 10 functions
         
-        return elapsed, s.getvalue(), result
+        return elapsed, s.getvalue(), result # type: ignore
 
 
 # ============================================================================

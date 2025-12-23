@@ -59,4 +59,6 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov=radar_cog_processor --cov-report=html --cov-report=term-missing"
+# Note: Coverage is disabled by default for faster test discovery in VS Code
+# Run with: pytest --cov=radar_cog_processor --cov-report=html for coverage
+addopts = "-v"
