@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "radar-cog-processor"
+name = "radar-processor"
 version = "0.1.0"
 description = "A Python package for processing meteorological radar NetCDF files into Cloud-Optimized GeoTIFFs (COG)"
 readme = "README.md"
 authors = [
-    {name = "Radar Visualization Team", email = "your-email@example.com"}
+    {name = "Radar Visualization Team", email = "jgmarti84@gmail.com"}
 ]
 license = {text = "MIT"}
 classifiers = [
@@ -24,7 +24,7 @@ classifiers = [
 requires-python = ">=3.9"
 dependencies = [
     "numpy>=1.20.0",
-    "arm_pyart @ git+https://github.com/IgnaCat/pyart.git@84f411ae86e05b14fc075b8f6535af84c8bba2c9",
+    "arm-pyart>=2.1.1",
     "rasterio>=1.3.0",
     "pyproj>=3.0.0",
     "affine>=2.0.0",
@@ -43,9 +43,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/radar-cog-processor"
-Repository = "https://github.com/yourusername/radar-cog-processor"
-Documentation = "https://github.com/yourusername/radar-cog-processor/blob/main/README.md"
+Homepage = "https://github.com/jgmarti84/radar-processor"
+Repository = "https://github.com/jgmarti84/radar-processor"
+Documentation = "https://github.com/jgmarti84/radar-processor/README.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]
