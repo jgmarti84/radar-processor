@@ -4,7 +4,7 @@ Batch processing example: Process multiple radar files.
 This example demonstrates how to process multiple radar files
 in batch mode, useful for operational processing or research.
 """
-from radar_cog_processor import process_radar_to_cog
+from radar_processor import process_radar_to_cog
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time

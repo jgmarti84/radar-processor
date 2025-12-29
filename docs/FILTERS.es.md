@@ -330,7 +330,7 @@ filters = [
 Debido a que los filtros QC afectan el caché, puedes procesar eficientemente múltiples productos:
 
 ```python
-from radar_cog_processor.cache import GRID3D_CACHE
+from radar_processor.cache import GRID3D_CACHE
 
 # Definir filtro QC una vez
 qc = [Filter("RHOHV", min=0.85)]
@@ -427,7 +427,7 @@ process_radar_to_cog("archivoB.nc", filters=filters, ...)
 
 ✅ **Mejor práctica:**
 ```python
-from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
 
 # Limpiar entre diferentes archivos de radar
 GRID2D_CACHE.clear()

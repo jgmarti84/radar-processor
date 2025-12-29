@@ -41,6 +41,7 @@ from .processor import (
     beam_height_max_km,
     collapse_grid_to_2d,
     create_cappi,
+    warp_to_web_mercator,
 )
 
 
@@ -327,8 +328,11 @@ def process_radar_to_cog_legacy(
         cmap=cmap,
         vmin=vmin,
         vmax=vmax,
-        warp_to_mercator=True
+        warp=False
     )
+    
+    # Warp to Web Mercator projection (standalone process, independent of pyart)
+    warp_to_web_mercator(tiff_path)
     
     # Update cache with warped version if first time (for stats)
     if pkg_cached.get("arr_warped") is None:
@@ -339,8 +343,11 @@ def process_radar_to_cog_legacy(
             field=field_to_use,
             level=0,
             rgb=False,  # Numeric values without colormap
-            warp_to_mercator=True
+            warp=False
         )
+        
+        # Warp to Web Mercator projection (standalone process, independent of pyart)
+        warp_to_web_mercator(temp_numeric_tif)
         
         # Read warped numeric GeoTIFF for stats
         with rasterio.open(temp_numeric_tif) as src_numeric:

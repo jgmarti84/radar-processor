@@ -47,7 +47,7 @@ pip install -e ".[dev]"
 ### Basic Usage
 
 ```python
-from radar_cog_processor import process_radar_to_cog
+from radar_processor import process_radar_to_cog
 
 # Process a radar file
 result = process_radar_to_cog(
@@ -232,7 +232,7 @@ pytest tests/
 With coverage:
 
 ```bash
-pytest tests/ --cov=radar_cog_processor --cov-report=html
+pytest tests/ --cov=radar_processor --cov-report=html
 ```
 
 ## Performance Tips

@@ -19,7 +19,7 @@ Una biblioteca Python para convertir archivos NetCDF de radar meteorológico a G
 
 ## Descripción General
 
-La biblioteca `radar_cog_processor` convierte datos de radar meteorológico desde formato NetCDF (comúnmente usado por sistemas de radar como RMA/ARM) a GeoTIFFs Optimizados para la Nube (COGs). Los COGs están optimizados para mapeo web y almacenamiento en la nube, permitiendo acceso eficiente basado en tiles.
+La biblioteca `radar_processor` convierte datos de radar meteorológico desde formato NetCDF (comúnmente usado por sistemas de radar como RMA/ARM) a GeoTIFFs Optimizados para la Nube (COGs). Los COGs están optimizados para mapeo web y almacenamiento en la nube, permitiendo acceso eficiente basado en tiles.
 
 ### Características Principales
 
@@ -66,7 +66,7 @@ pip install -e .
 ## Inicio Rápido
 
 ```python
-from radar_cog_processor import process_radar_to_cog
+from radar_processor import process_radar_to_cog
 
 # Uso básico
 result = process_radar_to_cog(
@@ -433,7 +433,7 @@ Las claves de caché se basan en:
 ### Limpiando el Caché
 
 ```python
-from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
 
 # Limpiar todas las mallas cacheadas
 GRID2D_CACHE.clear()
@@ -457,7 +457,7 @@ Ver el directorio `examples/` para ejemplos completos funcionales:
 ## Manejo de Errores
 
 ```python
-from radar_cog_processor import process_radar_to_cog
+from radar_processor import process_radar_to_cog
 
 try:
     result = process_radar_to_cog(...)

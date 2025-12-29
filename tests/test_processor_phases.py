@@ -10,14 +10,14 @@ from pathlib import Path
 from unittest.mock import patch, MagicMock, PropertyMock
 import pyart
 
-from radar_cog_processor.processor import (
+from radar_processor.processor import (
     _build_processing_config,
     _prepare_radar_field,
     _compute_grid_limits_and_resolution,
     _apply_filter_masks,
     _cache_or_build_2d_grid,
 )
-from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
 
 
 @pytest.fixture(autouse=True)
@@ -75,10 +75,10 @@ class TestPhase1BuildProcessingConfig:
         filepath = tmp_path / "test.nc"
         filepath.touch()
         
-        with patch('radar_cog_processor.processor.pyart.io.read', return_value=mock_radar):
-            with patch('radar_cog_processor.processor.resolve_field', 
+        with patch('radar_processor.processor.pyart.io.read', return_value=mock_radar):
+            with patch('radar_processor.processor.resolve_field', 
                       return_value=('DBZH', 'DBZH')):
-                with patch('radar_cog_processor.processor.colormap_for',
+                with patch('radar_processor.processor.colormap_for',
                           return_value=(None, -30, 50, 'DBZH')):
                     
                     config = _build_processing_config(
@@ -104,8 +104,8 @@ class TestPhase1BuildProcessingConfig:
         filepath = tmp_path / "test.nc"
         filepath.touch()
         
-        with patch('radar_cog_processor.processor.pyart.io.read', return_value=mock_radar):
-            with patch('radar_cog_processor.processor.resolve_field', 
+        with patch('radar_processor.processor.pyart.io.read', return_value=mock_radar):
+            with patch('radar_processor.processor.resolve_field', 
                       side_effect=KeyError("Field not found")):
                 
                 with pytest.raises(ValueError):
@@ -118,10 +118,10 @@ class TestPhase1BuildProcessingConfig:
         filepath = tmp_path / "test.nc"
         filepath.touch()
         
-        with patch('radar_cog_processor.processor.pyart.io.read', return_value=mock_radar):
-            with patch('radar_cog_processor.processor.resolve_field', 
+        with patch('radar_processor.processor.pyart.io.read', return_value=mock_radar):
+            with patch('radar_processor.processor.resolve_field', 
                       return_value=('DBZH', 'DBZH')):
-                with patch('radar_cog_processor.processor.colormap_for',
+                with patch('radar_processor.processor.colormap_for',
                           return_value=(None, -30, 50, 'DBZH')):
                     
                     with pytest.raises(ValueError, match="elevación"):
@@ -146,10 +146,10 @@ class TestPhase1BuildProcessingConfig:
             MockFilter('DBZH', -30, 50),    # Visual filter
         ]
         
-        with patch('radar_cog_processor.processor.pyart.io.read', return_value=mock_radar):
-            with patch('radar_cog_processor.processor.resolve_field', 
+        with patch('radar_processor.processor.pyart.io.read', return_value=mock_radar):
+            with patch('radar_processor.processor.resolve_field', 
                       return_value=('DBZH', 'DBZH')):
-                with patch('radar_cog_processor.processor.colormap_for',
+                with patch('radar_processor.processor.colormap_for',
                           return_value=(None, -30, 50, 'DBZH')):
                     
                     config = _build_processing_config(
@@ -191,7 +191,7 @@ class TestPhase4PrepareRadarField:
             }
         }
         
-        with patch('radar_cog_processor.processor.create_colmax', return_value=mock_colmax):
+        with patch('radar_processor.processor.create_colmax', return_value=mock_colmax):
             radar_out, field_out = _prepare_radar_field(mock_radar, 'DBZH', 'COLMAX', 4000)
         
         assert field_out == 'composite_reflectivity'
@@ -216,8 +216,8 @@ class TestPhase6ComputeGridLimits:
     
     def test_ppi_grid_computation(self, mock_radar):
         """Test grid limits computation for PPI."""
-        with patch('radar_cog_processor.processor.safe_range_max_m', return_value=150000):
-            with patch('radar_cog_processor.processor.beam_height_max_km', return_value=15):
+        with patch('radar_processor.processor.safe_range_max_m', return_value=150000):
+            with patch('radar_processor.processor.beam_height_max_km', return_value=15):
                 
                 grid_config = _compute_grid_limits_and_resolution(
                     mock_radar, 'PPI', 0, 4000, None
@@ -237,7 +237,7 @@ class TestPhase6ComputeGridLimits:
     
     def test_cappi_grid_computation(self, mock_radar):
         """Test grid limits computation for CAPPI."""
-        with patch('radar_cog_processor.processor.safe_range_max_m', return_value=150000):
+        with patch('radar_processor.processor.safe_range_max_m', return_value=150000):
             grid_config = _compute_grid_limits_and_resolution(
                 mock_radar, 'CAPPI', 0, 4000, None
             )
@@ -248,7 +248,7 @@ class TestPhase6ComputeGridLimits:
     
     def test_grid_resolution_per_volume(self, mock_radar):
         """Test that grid resolution varies per volume."""
-        with patch('radar_cog_processor.processor.safe_range_max_m', return_value=150000):
+        with patch('radar_processor.processor.safe_range_max_m', return_value=150000):
             
             config_vol03 = _compute_grid_limits_and_resolution(
                 mock_radar, 'PPI', 0, 4000, '03'
@@ -366,8 +366,8 @@ class TestPhase12ExportToCOG:
         cog_path = tmp_path / "test.tif"
         output_dir = str(tmp_path)
         
-        with patch('radar_cog_processor.processor.pyart.io.write_grid_geotiff'):
-            with patch('radar_cog_processor.processor.convert_to_cog', return_value=cog_path):
+        with patch('radar_processor.processor.pyart.io.write_grid_geotiff'):
+            with patch('radar_processor.processor.convert_to_cog', return_value=cog_path):
                 result = True  # Simulate successful export
         
         assert result is True
@@ -382,7 +382,7 @@ class TestCacheBehavior:
     
     def test_2d_grid_cache_hit(self, tmp_path, mock_radar):
         """Test that 2D grid cache prevents redundant computation."""
-        from radar_cog_processor.utils import grid2d_cache_key
+        from radar_processor.utils import grid2d_cache_key
         
         cache_key = grid2d_cache_key(
             file_hash='abc123',
@@ -413,7 +413,7 @@ class TestCacheBehavior:
     
     def test_3d_grid_cache_storage(self, mock_radar):
         """Test that 3D grids are properly cached."""
-        from radar_cog_processor.utils import grid3d_cache_key
+        from radar_processor.utils import grid3d_cache_key
         
         cache_key = grid3d_cache_key(
             file_hash='abc123',

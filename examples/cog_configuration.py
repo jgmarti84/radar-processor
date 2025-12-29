@@ -6,8 +6,8 @@ Demonstrates how to use the new overview configuration parameters
 in process_radar_to_cog() and convert_to_cog().
 """
 
-from radar_cog_processor import process_radar_to_cog
-from radar_cog_processor.processor import convert_to_cog
+from radar_processor import process_radar_to_cog
+from radar_processor.processor import convert_to_cog
 import time
 
 

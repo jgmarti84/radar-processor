@@ -47,7 +47,7 @@ pip install -e .
 ### Uso Básico
 
 ```python
-from radar_cog_processor import process_radar_to_cog
+from radar_processor import process_radar_to_cog
 
 # Procesar un archivo de radar a COG
 result = process_radar_to_cog(
@@ -269,7 +269,7 @@ La biblioteca implementa caché inteligente para evitar cálculos redundantes:
 ### Gestión del Caché
 
 ```python
-from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
 
 # Limpiar cachés entre archivos o para gestión de memoria
 GRID2D_CACHE.clear()
@@ -381,7 +381,7 @@ python scripts/benchmark_compare.py --runs 3 data/netcdf/*.nc
 pytest tests/
 
 # Ejecutar con cobertura
-pytest tests/ --cov=radar_cog_processor
+pytest tests/ --cov=radar_processor
 
 # Ejecutar archivo de prueba específico
 pytest tests/test_processor_phases.py
@@ -391,7 +391,7 @@ pytest tests/test_processor_phases.py
 
 ```
 radar-processor/
-├── src/radar_cog_processor/
+├── src/radar_processor/
 │   ├── __init__.py         # Exportaciones del paquete
 │   ├── processor.py        # Pipeline de procesamiento principal
 │   ├── processor_legacy.py # Implementación legacy (referencia)

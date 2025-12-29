@@ -22,9 +22,9 @@ import cProfile
 import pstats
 import io
 
-from radar_cog_processor.processor import process_radar_to_cog
-from radar_cog_processor.processor_legacy import process_radar_to_cog_legacy
-from radar_cog_processor.processor import (
+from radar_processor.processor import process_radar_to_cog
+from radar_processor.processor_legacy import process_radar_to_cog_legacy
+from radar_processor.processor import (
     _build_processing_config,
     _prepare_radar_field,
     _compute_grid_limits_and_resolution,
@@ -162,10 +162,10 @@ class TestOptimizedFunctions:
         filepath.touch()
         
         # Mock the file reading and field resolution
-        with patch('radar_cog_processor.processor.pyart.io.read', return_value=mock_radar):
-            with patch('radar_cog_processor.processor.resolve_field', 
+        with patch('radar_processor.processor.pyart.io.read', return_value=mock_radar):
+            with patch('radar_processor.processor.resolve_field', 
                       return_value=('DBZH', 'DBZH')):
-                with patch('radar_cog_processor.processor.colormap_for',
+                with patch('radar_processor.processor.colormap_for',
                           return_value=(None, -30, 50, 'DBZH')):
                     
                     with PerformanceTimer("_build_processing_config") as timer:
@@ -181,7 +181,7 @@ class TestOptimizedFunctions:
     
     def test_compute_grid_limits_vectorization(self, mock_radar):
         """Test Phase 6: Grid computation is vectorized."""
-        with patch('radar_cog_processor.processor.safe_range_max_m', return_value=150000):
+        with patch('radar_processor.processor.safe_range_max_m', return_value=150000):
             with PerformanceTimer("_compute_grid_limits_and_resolution") as timer:
                 grid_config = _compute_grid_limits_and_resolution(
                     mock_radar, 'PPI', 0, 4000, None
@@ -226,7 +226,7 @@ class TestPerformanceBenchmarks:
         output_optimized.mkdir(parents=True, exist_ok=True)
         
         # Clear cache between runs
-        from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+        from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
         GRID2D_CACHE.clear()
         GRID3D_CACHE.clear()
         
@@ -343,7 +343,7 @@ class TestIntegration:
         results = BenchmarkResults()
         
         for filepath in sample_netcdf_files[:2]:  # Limit to 2 files
-            from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+            from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
             GRID2D_CACHE.clear()
             GRID3D_CACHE.clear()
             
@@ -402,7 +402,7 @@ class TestIntegration:
         results = BenchmarkResults()
         
         for product in ["PPI", "CAPPI", "COLMAX"]:
-            from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+            from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
             GRID2D_CACHE.clear()
             GRID3D_CACHE.clear()
             
@@ -555,7 +555,7 @@ class TestOutputEquality:
         3. Data values are identical (within floating point tolerance)
         4. Statistics match (min, max, mean)
         """
-        from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+        from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
         import shutil
         
         # Clean directories
@@ -626,7 +626,7 @@ class TestOutputEquality:
     def test_output_files_with_filters(self):
         sample_radar_file = Path("data/netcdf/RMA1_0315_01_20251208T191648Z.nc")
         """Test that filtered outputs are also identical between implementations."""
-        from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+        from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
         import shutil
         
         legacy_dir = Path("output/test_equality_filters_legacy")
@@ -688,7 +688,7 @@ class TestOutputEquality:
     def test_output_reproducibility(self):
         sample_radar_file = Path("data/netcdf/RMA1_0315_01_20251208T191648Z.nc")
         """Test that running the same implementation twice produces identical output."""
-        from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+        from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
         import shutil
         
         output_dir1 = Path("output/test_reproducibility_1")
