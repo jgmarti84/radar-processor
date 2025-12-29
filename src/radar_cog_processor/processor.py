@@ -3,6 +3,7 @@ Core processor module for converting radar NetCDF files to Cloud-Optimized GeoTI
 """
 import math
 import os
+import shutil
 import pyart
 import uuid
 import pyproj
@@ -225,6 +226,83 @@ def _string_to_resampling(method_str):
     return method_map[method_lower]
 
 
+def warp_to_web_mercator(geotiff_path, output_path=None):
+    """
+    Reproject a GeoTIFF to Web Mercator (EPSG:3857) projection.
+    
+    This is a standalone function that handles Web Mercator projection warping
+    independently of pyart's built-in functionality. Uses gdalwarp for the
+    coordinate transformation.
+    
+    Parameters
+    ----------
+    geotiff_path : str or Path
+        Path to input GeoTIFF file
+    output_path : str or Path, optional
+        Path for output GeoTIFF. If None, overwrites input file in-place.
+    
+    Returns
+    -------
+    Path
+        Path to the warped GeoTIFF file
+    
+    Raises
+    ------
+    OSError
+        If gdalwarp fails or file I/O error occurs
+    
+    Notes
+    -----
+    Web Mercator (EPSG:3857) is the standard projection for web mapping
+    applications (Google Maps, Mapbox, Leaflet, etc.).
+    
+    The transformation uses gdalwarp with these settings:
+    - Projection: Web Mercator (EPSG:3857)
+    - Resampling: Nearest neighbor (fast)
+    - No multi-threading to avoid issues with cloud storage
+    
+    Examples
+    --------
+    >>> # Warp in-place (overwrites original)
+    >>> warp_to_web_mercator('radar.tif')
+    
+    >>> # Warp to new file
+    >>> warp_to_web_mercator('radar.tif', 'radar_mercator.tif')
+    """
+    geotiff_path = Path(geotiff_path)
+    
+    if output_path is None:
+        # In-place warping: use temporary file then move
+        output_path = geotiff_path
+        temp_path = geotiff_path.parent / f"{geotiff_path.stem}_tmp.tif"
+    else:
+        output_path = Path(output_path)
+        temp_path = output_path
+    
+    # Web Mercator projection string
+    mercator_crs = "+proj=merc +a=6378137 +b=6378137 +lon_0=0 +lat_ts=0 +units=m +no_defs +type=crs"
+    
+    # Use gdalwarp to reproject
+    # -q: quiet mode
+    # -of GTiff: output format
+    # -t_srs: target spatial reference system
+    cmd = f'gdalwarp -q -of GTiff -t_srs "{mercator_crs}" "{geotiff_path}" "{temp_path}"'
+    
+    ret_code = os.system(cmd)
+    
+    if ret_code != 0:
+        raise OSError(
+            f"gdalwarp failed with return code {ret_code}. "
+            f"Command: {cmd}"
+        )
+    
+    # If in-place warping, move temp file to original
+    if output_path == geotiff_path and temp_path != output_path:
+        shutil.move(str(temp_path), str(output_path))
+    
+    return Path(output_path)
+
+
 def convert_to_cog(src_path, cog_path, overview_factors=None, resampling_method="nearest"):
     """
     Convert existing GeoTIFF to Cloud-Optimized GeoTIFF (COG).
@@ -358,14 +436,16 @@ def create_colmax(radar):
     pyart.core.Radar
         Radar object with composite_reflectivity field
     """
-    compz = pyart.retrieve.composite_reflectivity(radar, field="filled_DBZH")
+    # Now compute composite reflectivity
+    compz = pyart.retrieve.composite_reflectivity(radar, field="filled_DBZH" if "filled_DBZH" in radar.fields else "DBZH")
 
     # Change long_name for figure title
     compz.fields['composite_reflectivity']['long_name'] = 'COLMAX'
 
-    # Re-mask before export
+    # Re-mask before export - only mask NaN values, not the valid -30 or other values
     data = compz.fields['composite_reflectivity']['data']
-    mask = np.isnan(data) | np.isclose(data, -30) | (data < -40)
+    # Create mask for truly invalid values
+    mask = np.isnan(data)  # Only mask actual NaN values
     compz.fields['composite_reflectivity']['data'] = np.ma.array(data, mask=mask)
     compz.fields['composite_reflectivity']['_FillValue'] = -9999.0
 
@@ -630,8 +710,25 @@ def _prepare_radar_field(radar, field_name, product_upper, cappi_height):
     """
     # For CAPPI/COLMAX, create filled reflectivity
     if field_name == "DBZH" and product_upper in ["CAPPI", "COLMAX"]:
-        filled_DBZH = radar.fields[field_name]['data'].filled(fill_value=-30)
-        radar.add_field_like(field_name, 'filled_DBZH', filled_DBZH, replace_existing=True)
+        dbzh_data = radar.fields[field_name]['data']
+        
+        # .filled() only replaces masked values, not -inf/+inf/nan
+        # So we need to explicitly replace invalid values
+        if isinstance(dbzh_data, np.ma.MaskedArray):
+            # Get the underlying data
+            data_array = dbzh_data.data.copy()
+        else:
+            data_array = np.array(dbzh_data, copy=True)
+        
+        # Replace all invalid values (inf, -inf, nan) with -30
+        invalid_mask = ~np.isfinite(data_array)
+        data_array[invalid_mask] = -30
+        
+        # Now also handle any actually masked values
+        if isinstance(dbzh_data, np.ma.MaskedArray) and not isinstance(dbzh_data.mask, (bool, np.bool_)):
+            data_array[dbzh_data.mask] = -30
+        
+        radar.add_field_like(field_name, 'filled_DBZH', data_array, replace_existing=True)
         field_name = 'filled_DBZH'
     
     if product_upper == "PPI":
@@ -989,8 +1086,12 @@ def _export_to_cog(
         cmap=cmap,
         vmin=vmin,
         vmax=vmax,
-        warp_to_mercator=True
+        warp=False,
+        # warp_to_mercator=True
     )
+    
+    # Warp to Web Mercator projection (standalone process, independent of pyart)
+    warp_to_web_mercator(tiff_path)
     
     # Cache warped version if first time
     if pkg_cached.get("arr_warped") is None:
@@ -1001,8 +1102,12 @@ def _export_to_cog(
             field=field_to_use,
             level=0,
             rgb=False,
-            warp_to_mercator=True
+            warp=False,
+            # warp_to_mercator=True
         )
+        
+        # Warp to Web Mercator projection (standalone process, independent of pyart)
+        warp_to_web_mercator(temp_numeric_tif)
         
         with rasterio.open(temp_numeric_tif) as src_numeric:
             arr_warped = src_numeric.read(1, masked=True)
