@@ -82,7 +82,7 @@ class TestPhase1BuildProcessingConfig:
                           return_value=(None, -30, 50, 'DBZH')):
                     
                     config = _build_processing_config(
-                        str(filepath), 'PPI', 'DBZH', 0, 4000, None, None, [], str(tmp_path)
+                        str(filepath), 'PPI', 'DBZH', 0, 4000, None, None, None, None, [], str(tmp_path)
                     )
         
         # Verify config structure
@@ -110,7 +110,7 @@ class TestPhase1BuildProcessingConfig:
                 
                 with pytest.raises(ValueError):
                     _build_processing_config(
-                        str(filepath), 'PPI', 'INVALID', 0, 4000, None, None, [], str(tmp_path)
+                        str(filepath), 'PPI', 'INVALID', 0, 4000, None, None, None, None, [], str(tmp_path)
                     )
     
     def test_config_raises_on_invalid_elevation(self, tmp_path, mock_radar):
@@ -126,7 +126,7 @@ class TestPhase1BuildProcessingConfig:
                     
                     with pytest.raises(ValueError, match="elevación"):
                         _build_processing_config(
-                            str(filepath), 'PPI', 'DBZH', 10, 4000, None, None, [], str(tmp_path)
+                            str(filepath), 'PPI', 'DBZH', 10, 4000, None, None, None, None, [], str(tmp_path)
                         )
     
     def test_filter_separation(self, tmp_path, mock_radar):
@@ -153,7 +153,7 @@ class TestPhase1BuildProcessingConfig:
                           return_value=(None, -30, 50, 'DBZH')):
                     
                     config = _build_processing_config(
-                        str(filepath), 'PPI', 'DBZH', 0, 4000, None, None, filters, str(tmp_path)
+                        str(filepath), 'PPI', 'DBZH', 0, 4000, None, None, None, None, filters, str(tmp_path)
                     )
         
         # Verify filter separation

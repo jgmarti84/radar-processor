@@ -593,6 +593,8 @@ def _build_processing_config(
     cappi_height,
     volume,
     colormap_overrides,
+    vmin_overrides,
+    vmax_overrides,
     filters,
     output_dir,
 ):
@@ -658,6 +660,12 @@ def _build_processing_config(
     
     cmap_override = (colormap_overrides or {}).get(field_requested, None)
     cmap, vmin, vmax, cmap_key = colormap_for(field_key, override_cmap=cmap_override)
+    
+    # Apply vmin/vmax overrides if provided
+    if vmin_overrides and field_requested in vmin_overrides:
+        vmin = vmin_overrides[field_requested]
+    if vmax_overrides and field_requested in vmax_overrides:
+        vmax = vmax_overrides[field_requested]
     
     # Separate filters
     qc_filters = []
@@ -824,19 +832,34 @@ def _apply_filter_masks(masked_arr, visual_filters, qc_filters, field_to_use, pk
     
     # Vectorized visual filter application
     dyn_mask = np.zeros(masked_arr.shape, dtype=bool)
+    qc_dict = pkg_cached.get("qc", {}) or {}
     
     for f in visual_filters:
         ffield = str(getattr(f, "field", None) or "").upper()
-        if not ffield or ffield != str(field_to_use).upper():
+        if not ffield:
             continue
         
-        fmin = getattr(f, "min", None)
-        fmax = getattr(f, "max", None)
-        
-        if fmin is not None and not (fmin <= 0.3 and field_to_use == "RHOHV"):
-            dyn_mask |= (masked_arr < float(fmin))
-        if fmax is not None:
-            dyn_mask |= (masked_arr > float(fmax))
+        # Check if filter field matches the current field being plotted
+        if ffield == str(field_to_use).upper():
+            # Apply filter directly to the field data
+            fmin = getattr(f, "min", None)
+            fmax = getattr(f, "max", None)
+            
+            if fmin is not None and not (fmin <= 0.3 and field_to_use == "RHOHV"):
+                dyn_mask |= (masked_arr < float(fmin))
+            if fmax is not None:
+                dyn_mask |= (masked_arr > float(fmax))
+        else:
+            # Check if filter field is available in QC cache (cross-field filtering)
+            q2d = qc_dict.get(ffield)
+            if q2d is not None:
+                fmin = getattr(f, "min", None)
+                fmax = getattr(f, "max", None)
+                
+                if fmin is not None:
+                    dyn_mask |= (q2d < float(fmin))
+                if fmax is not None:
+                    dyn_mask |= (q2d > float(fmax))
     
     masked_arr.mask = np.ma.getmaskarray(masked_arr) | dyn_mask
     
@@ -1150,6 +1173,8 @@ def process_radar_to_cog(
     output_dir="output",
     volume=None,
     colormap_overrides=None,
+    vmin_overrides=None,
+    vmax_overrides=None,
     overview_factors=None,
     resampling_method="nearest",
 ):
@@ -1194,6 +1219,10 @@ def process_radar_to_cog(
         Volume identifier for resolution selection
     colormap_overrides : dict, optional
         Dict mapping field names to colormap keys, e.g., {'DBZH': 'grc_th2'}
+    vmin_overrides : dict, optional
+        Dict mapping field names to minimum values, e.g., {'DBZH': -20, 'ZDR': -2}
+    vmax_overrides : dict, optional
+        Dict mapping field names to maximum values, e.g., {'DBZH': 70, 'ZDR': 7.5}
     overview_factors : list of int, optional
         Downsampling factors for COG overview levels. Default [2, 4, 8, 16].
         Set to [] to disable overviews (faster export, larger files).
@@ -1259,7 +1288,7 @@ def process_radar_to_cog(
     # Phase 1 & 2: Setup, validation, and caching config
     config = _build_processing_config(
         filepath, product, field_requested, elevation, cappi_height,
-        volume, colormap_overrides, filters, output_dir
+        volume, colormap_overrides, vmin_overrides, vmax_overrides, filters, output_dir
     )
     
     # Early return if COG exists

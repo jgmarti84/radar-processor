@@ -170,7 +170,7 @@ class TestOptimizedFunctions:
                     
                     with PerformanceTimer("_build_processing_config") as timer:
                         config = _build_processing_config(
-                            filepath, 'PPI', 'DBZH', 0, 4000, None, None, [], str(tmp_path)
+                            filepath, 'PPI', 'DBZH', 0, 4000, None, None, None, None, [], str(tmp_path)
                         )
                     
                     assert config is not None
