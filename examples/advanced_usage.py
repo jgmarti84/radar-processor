@@ -7,7 +7,7 @@ This example demonstrates more advanced features:
 - Using custom colormaps
 - Processing different products (PPI, CAPPI, COLMAX)
 """
-from radar_cog_processor import process_radar_to_cog
+from radar_processor import process_radar_to_cog
 from pathlib import Path
 
 

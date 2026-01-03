@@ -1,9 +1,9 @@
 """
-Unit tests for radar_cog_processor.cache module.
+Unit tests for radar_processor.cache module.
 """
 import pytest
 import numpy as np
-from radar_cog_processor.cache import (
+from radar_processor.cache import (
     _nbytes_arr,
     _nbytes_pkg,
     _nbytes_pkg3d,

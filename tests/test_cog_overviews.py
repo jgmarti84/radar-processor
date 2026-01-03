@@ -11,7 +11,7 @@ import rasterio
 from pathlib import Path
 from rasterio.enums import ColorInterp, Resampling
 
-from radar_cog_processor.processor import (
+from radar_processor.processor import (
     _string_to_resampling,
     convert_to_cog,
 )

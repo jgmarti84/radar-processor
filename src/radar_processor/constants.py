@@ -1,5 +1,10 @@
 """
 Constants for radar field definitions, colormaps, and rendering parameters.
+
+This file has been synchronized with radarlib's configuration to ensure
+PNG and COG outputs use identical rendering parameters.
+
+Source: radarlib/src/radarlib/config.py
 """
 
 # Field name aliases for different radar data formats
@@ -16,16 +21,17 @@ FIELD_ALIASES = {
 }
 
 # Default rendering parameters for each field
+# Updated to match radarlib's NOFILTERS configuration
 FIELD_RENDER = {
-    "DBZH": {"vmin": -30.0, "vmax": 70.0, "cmap": "grc_th"},
-    "DBZHF": {"vmin": -30.0, "vmax": 70.0, "cmap": "grc_th"},
-    "DBZV": {"vmin": -30.0, "vmax": 70.0, "cmap": "grc_th"},
-    "ZDR": {"vmin": -5.0, "vmax": 10.5, "cmap": "grc_zdr2"},
+    "DBZH": {"vmin": -20.0, "vmax": 70.0, "cmap": "grc_th"},
+    "DBZHF": {"vmin": -20.0, "vmax": 70.0, "cmap": "grc_th"},
+    "DBZV": {"vmin": -20.0, "vmax": 70.0, "cmap": "grc_th"},
+    "ZDR": {"vmin": -7.5, "vmax": 7.5, "cmap": "grc_zdr"},
     "RHOHV": {"vmin": 0.0, "vmax": 1.0, "cmap": "grc_rho"},
-    "KDP": {"vmin": 0.0, "vmax": 8.0, "cmap": "grc_rain"},
-    "VRAD": {"vmin": -35.0, "vmax": 35.0, "cmap": "NWSVel"},
-    "WRAD": {"vmin": 0.0, "vmax": 10.0, "cmap": "Oranges"},
-    "PHIDP": {"vmin": 0.0, "vmax": 360.0, "cmap": "Theodore16"},
+    "KDP": {"vmin": -4.0, "vmax": 8.0, "cmap": "jet"},
+    "VRAD": {"vmin": -30.0, "vmax": 30.0, "cmap": "grc_vrad"},
+    "WRAD": {"vmin": -2.0, "vmax": 6.0, "cmap": "grc_th"},
+    "PHIDP": {"vmin": -5.0, "vmax": 360.0, "cmap": "grc_th"},
 }
 
 # Variable units
@@ -45,12 +51,12 @@ FIELD_COLORMAP_OPTIONS = {
     "DBZH": ["grc_th", "grc_th2", "grc_rain", "pyart_NWSRef", "pyart_HomeyerRainbow"],
     "DBZHF": ["grc_th", "grc_th2", "grc_rain", "pyart_NWSRef", "pyart_HomeyerRainbow"],
     "DBZV": ["grc_th", "grc_th2", "grc_rain", "pyart_NWSRef", "pyart_HomeyerRainbow"],
-    "ZDR": ["grc_zdr2", "grc_zdr", "pyart_RefDiff", "pyart_Theodore16"],
+    "ZDR": ["grc_zdr", "grc_zdr2", "pyart_RefDiff", "pyart_Theodore16"],
     "RHOHV": ["grc_rho", "pyart_RefDiff", "Greys", "viridis"],
-    "KDP": ["grc_rain", "grc_th", "pyart_Theodore16", "plasma"],
-    "VRAD": ["NWSVel", "pyart_BuDRd18", "seismic", "RdBu_r"],
-    "WRAD": ["Oranges", "YlOrRd", "hot", "plasma"],
-    "PHIDP": ["Theodore16", "hsv", "twilight", "twilight_shifted"],
+    "KDP": ["jet", "grc_rain", "grc_th", "pyart_Theodore16", "plasma"],
+    "VRAD": ["grc_vrad", "NWSVel", "pyart_BuDRd18", "seismic", "RdBu_r"],
+    "WRAD": ["grc_th", "Oranges", "YlOrRd", "hot", "plasma"],
+    "PHIDP": ["grc_th", "Theodore16", "hsv", "twilight", "twilight_shifted"],
 }
 
 # Fields that affect interpolation (QC fields)

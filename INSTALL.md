@@ -51,11 +51,11 @@ pip install -e .
 ## Verifying Installation
 
 ```python
-import radar_cog_processor
-print(radar_cog_processor.__version__)
+import radar_processor
+print(radar_processor.__version__)
 
 # Test import of main function
-from radar_cog_processor import process_radar_to_cog
+from radar_processor import process_radar_to_cog
 print("Installation successful!")
 ```
 
@@ -69,7 +69,7 @@ pip install -e ".[dev]"
 pytest tests/
 
 # Run with coverage
-pytest tests/ --cov=radar_cog_processor --cov-report=html
+pytest tests/ --cov=radar_processor --cov-report=html
 
 # View coverage report
 open htmlcov/index.html  # macOS
@@ -114,7 +114,7 @@ twine check dist/*
 ```
 radar-cog-processor/
 ├── src/
-│   └── radar_cog_processor/
+│   └── radar_processor/
 │       ├── __init__.py          # Package initialization
 │       ├── processor.py         # Main processing functions
 │       ├── constants.py         # Field definitions and constants
@@ -169,7 +169,7 @@ conda install -c conda-forge pyproj
 ### Issue: Out of memory with large files
 **Solution:** Adjust cache sizes in code or process files sequentially:
 ```python
-from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
 
 # Reduce cache sizes
 GRID2D_CACHE.maxsize = 100 * 1024 * 1024  # 100 MB
@@ -194,12 +194,12 @@ pytest tests/
 
 4. **Format code:**
 ```bash
-black src/radar_cog_processor tests examples
+black src/radar_processor tests examples
 ```
 
 5. **Check code quality:**
 ```bash
-flake8 src/radar_cog_processor
+flake8 src/radar_processor
 ```
 
 ## Using in Another Project
@@ -207,7 +207,7 @@ flake8 src/radar_cog_processor
 After installing the package, use it in your code:
 
 ```python
-from radar_cog_processor import process_radar_to_cog
+from radar_processor import process_radar_to_cog
 
 result = process_radar_to_cog(
     filepath="path/to/radar.nc",

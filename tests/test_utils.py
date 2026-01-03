@@ -1,11 +1,11 @@
 """
-Unit tests for radar_cog_processor.utils module.
+Unit tests for radar_processor.utils module.
 """
 import pytest
 import numpy as np
 import hashlib
 from unittest.mock import Mock, MagicMock
-from radar_cog_processor.utils import (
+from radar_processor.utils import (
     md5_file,
     stable_hash,
     resolve_field,
@@ -17,7 +17,7 @@ from radar_cog_processor.utils import (
     grid3d_cache_key,
     collapse_field_3d_to_2d,
 )
-from radar_cog_processor.constants import FIELD_ALIASES
+from radar_processor.constants import FIELD_ALIASES
 
 
 def test_md5_file(tmp_path):
@@ -72,7 +72,7 @@ def test_colormap_for():
     """Test colormap retrieval."""
     # Test default colormap
     cmap, vmin, vmax, cmap_key = colormap_for("DBZH")
-    assert vmin == -30.0
+    assert vmin == -20.0
     assert vmax == 70.0
     assert cmap_key == "grc_th"
     
@@ -82,8 +82,8 @@ def test_colormap_for():
     
     # Test different field
     cmap, vmin, vmax, cmap_key = colormap_for("ZDR")
-    assert vmin == -5.0
-    assert vmax == 10.5
+    assert vmin == -7.5
+    assert vmax == 7.5
 
 
 def test_get_radar_site():

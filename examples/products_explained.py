@@ -16,8 +16,8 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from radar_cog_processor import process_radar_to_cog
-from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+from radar_processor import process_radar_to_cog
+from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
 
 
 # ============================================================================

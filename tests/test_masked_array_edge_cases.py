@@ -9,7 +9,7 @@ import numpy as np
 from unittest.mock import MagicMock, patch
 import pyart
 
-from radar_cog_processor.processor import (
+from radar_processor.processor import (
     _prepare_radar_field,
     create_colmax,
 )
@@ -123,7 +123,7 @@ class TestMaskedArrayEdgeCases:
         mock_colmax = MagicMock()
         mock_colmax.fields = {'composite_reflectivity': {'data': np.ones((100, 100))}}
         
-        with patch('radar_cog_processor.processor.create_colmax', return_value=mock_colmax):
+        with patch('radar_processor.processor.create_colmax', return_value=mock_colmax):
             radar_out, field_out = _prepare_radar_field(
                 mock_radar_with_scalar_mask, 'DBZH', 'COLMAX', 4000
             )
@@ -150,7 +150,7 @@ class TestMaskedArrayEdgeCases:
         mock_colmax = MagicMock()
         mock_colmax.fields = {'composite_reflectivity': {'data': np.ones((100, 100))}}
         
-        with patch('radar_cog_processor.processor.create_colmax', return_value=mock_colmax):
+        with patch('radar_processor.processor.create_colmax', return_value=mock_colmax):
             radar_out, field_out = _prepare_radar_field(
                 mock_radar_with_array_mask, 'DBZH', 'COLMAX', 4000
             )
@@ -172,7 +172,7 @@ class TestMaskedArrayEdgeCases:
         mock_colmax = MagicMock()
         mock_colmax.fields = {'composite_reflectivity': {'data': np.ones((100, 100))}}
         
-        with patch('radar_cog_processor.processor.create_colmax', return_value=mock_colmax):
+        with patch('radar_processor.processor.create_colmax', return_value=mock_colmax):
             radar_out, field_out = _prepare_radar_field(
                 mock_radar_with_mixed_issues, 'DBZH', 'COLMAX', 4000
             )
@@ -214,7 +214,7 @@ class TestMaskedArrayEdgeCases:
         mock_colmax = MagicMock()
         mock_colmax.fields = {'composite_reflectivity': {'data': np.ones((100, 100))}}
         
-        with patch('radar_cog_processor.processor.create_colmax', return_value=mock_colmax):
+        with patch('radar_processor.processor.create_colmax', return_value=mock_colmax):
             radar_out, field_out = _prepare_radar_field(
                 mock_radar_with_scalar_mask, 'ZDR', 'COLMAX', 4000
             )
@@ -291,7 +291,7 @@ class TestColmaxWithInvalidData:
             }
         }
         
-        with patch('radar_cog_processor.processor.pyart.retrieve.composite_reflectivity',
+        with patch('radar_processor.processor.pyart.retrieve.composite_reflectivity',
                    return_value=mock_composite):
             result = create_colmax(mock_radar_for_colmax)
         
@@ -317,7 +317,7 @@ class TestColmaxWithInvalidData:
             }
         }
         
-        with patch('radar_cog_processor.processor.pyart.retrieve.composite_reflectivity',
+        with patch('radar_processor.processor.pyart.retrieve.composite_reflectivity',
                    return_value=mock_composite):
             result = create_colmax(mock_radar_for_colmax)
         
@@ -375,7 +375,7 @@ class TestRealWorldScenarios:
         mock_colmax = MagicMock()
         mock_colmax.fields = {'composite_reflectivity': {'data': np.ones((360, 652))}}
         
-        with patch('radar_cog_processor.processor.create_colmax', return_value=mock_colmax):
+        with patch('radar_processor.processor.create_colmax', return_value=mock_colmax):
             radar_out, field_out = _prepare_radar_field(radar, 'DBZH', 'COLMAX', 4000)
         
         # Verify fix
@@ -413,7 +413,7 @@ class TestRealWorldScenarios:
         mock_colmax.fields = {'composite_reflectivity': {'data': np.ones((360, 652))}}
         
         start = time.time()
-        with patch('radar_cog_processor.processor.create_colmax', return_value=mock_colmax):
+        with patch('radar_processor.processor.create_colmax', return_value=mock_colmax):
             _prepare_radar_field(radar, 'DBZH', 'COLMAX', 4000)
         elapsed = time.time() - start
         

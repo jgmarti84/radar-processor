@@ -1,9 +1,9 @@
 """
-Unit tests for radar_cog_processor.colormaps module.
+Unit tests for radar_processor.colormaps module.
 """
 import pytest
 from matplotlib.colors import LinearSegmentedColormap
-from radar_cog_processor.colormaps import (
+from radar_processor.colormaps import (
     get_cmap_grc_rain,
     get_cmap_grc_th,
     get_cmap_grc_th2,

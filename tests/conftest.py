@@ -37,7 +37,7 @@ def sample_netcdf_file(tmp_path):
 @pytest.fixture(autouse=True)
 def clear_caches():
     """Clear caches before and after each test."""
-    from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+    from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
     GRID2D_CACHE.clear()
     GRID3D_CACHE.clear()
     yield

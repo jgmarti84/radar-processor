@@ -4,7 +4,7 @@ Basic example: Process a single radar file to COG.
 This example demonstrates the simplest use case - processing a single
 radar NetCDF file into a Cloud-Optimized GeoTIFF.
 """
-from radar_cog_processor import process_radar_to_cog
+from radar_processor import process_radar_to_cog
 from pathlib import Path
 
 

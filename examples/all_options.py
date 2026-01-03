@@ -13,7 +13,7 @@ Run this example:
     python examples/all_options.py
 
 This will create many output files demonstrating the full capability
-of the radar_cog_processor library.
+of the radar_processor library.
 """
 from pathlib import Path
 import sys
@@ -21,9 +21,9 @@ import sys
 # Add parent to path for local development
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from radar_cog_processor import process_radar_to_cog
-from radar_cog_processor.cache import GRID2D_CACHE, GRID3D_CACHE
-from radar_cog_processor.constants import FIELD_RENDER, FIELD_COLORMAP_OPTIONS
+from radar_processor import process_radar_to_cog
+from radar_processor.cache import GRID2D_CACHE, GRID3D_CACHE
+from radar_processor.constants import FIELD_RENDER, FIELD_COLORMAP_OPTIONS
 
 
 # ============================================================================
