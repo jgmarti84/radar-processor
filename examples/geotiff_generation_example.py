@@ -126,15 +126,10 @@ def example_2_cappi_as_cog():
     print("EXAMPLE 2: CAPPI as Cloud-Optimized GeoTIFF")
     print("=" * 60)
     
-    file = '/workspaces/radar-processor/data/netcdf/RMA3_0315_01_20251215T215802Z.nc'
-    radar = pyart.io.read(file)
-    
-    info = get_radar_info(radar)
-    radar_lat = info['latitude']
-    radar_lon = info['longitude']
-    
-    geometry_dir = '/workspaces/radar-processor/output/geometry'
-    geometry = load_geometry(f'{geometry_dir}/RMA1_0315_01_RES1500_TOA12000_FAC017_MR250_geometry.npz')
+    # Load test data
+    radar, geometry, radar_lat, radar_lon = load_test_data()
+    if radar is None:
+        return
     
     dbzh_data = get_field_data(radar, 'DBZH')
     grid_dbzh = apply_geometry(geometry, dbzh_data)
@@ -143,7 +138,7 @@ def example_2_cappi_as_cog():
     cappi = constant_altitude_ppi(grid_dbzh, geometry, altitude=3000.0)
     
     # Save as COG with overviews
-    output_file = '/tmp/cappi_3km.cog'
+    output_file = Path(DEFAULT_OUTPUT_DIR) / 'cappi_3km.cog'
     create_cog(
         cappi,
         geometry,
@@ -169,15 +164,10 @@ def example_3_ppi_geotiff():
     print("EXAMPLE 3: PPI to GeoTIFF")
     print("=" * 60)
     
-    file = '/workspaces/radar-processor/data/netcdf/RMA3_0315_01_20251215T215802Z.nc'
-    radar = pyart.io.read(file)
-    
-    info = get_radar_info(radar)
-    radar_lat = info['latitude']
-    radar_lon = info['longitude']
-    
-    geometry_dir = '/workspaces/radar-processor/output/geometry'
-    geometry = load_geometry(f'{geometry_dir}/RMA1_0315_01_RES1500_TOA12000_FAC017_MR250_geometry.npz')
+    # Load test data
+    radar, geometry, radar_lat, radar_lon = load_test_data()
+    if radar is None:
+        return
     
     dbzh_data = get_field_data(radar, 'DBZH')
     grid_dbzh = apply_geometry(geometry, dbzh_data)
@@ -188,7 +178,7 @@ def example_3_ppi_geotiff():
     print(f"PPI value range: [{np.nanmin(ppi):.2f}, {np.nanmax(ppi):.2f}] dBZ")
     
     # Save as COG using convenience function
-    output_file = '/tmp/ppi_2deg.cog'
+    output_file = Path(DEFAULT_OUTPUT_DIR) / 'ppi_2deg.cog'
     save_product_as_geotiff(
         ppi,
         geometry,
@@ -215,15 +205,10 @@ def example_4_colmax_geotiff():
     print("EXAMPLE 4: COLMAX to GeoTIFF")
     print("=" * 60)
     
-    file = '/workspaces/radar-processor/data/netcdf/RMA3_0315_01_20251215T215802Z.nc'
-    radar = pyart.io.read(file)
-    
-    info = get_radar_info(radar)
-    radar_lat = info['latitude']
-    radar_lon = info['longitude']
-    
-    geometry_dir = '/workspaces/radar-processor/output/geometry'
-    geometry = load_geometry(f'{geometry_dir}/RMA1_0315_01_RES1500_TOA12000_FAC017_MR250_geometry.npz')
+    # Load test data
+    radar, geometry, radar_lat, radar_lon = load_test_data()
+    if radar is None:
+        return
     
     dbzh_data = get_field_data(radar, 'DBZH')
     grid_dbzh = apply_geometry(geometry, dbzh_data)
@@ -234,7 +219,7 @@ def example_4_colmax_geotiff():
     print(f"COLMAX value range: [{np.nanmin(colmax):.2f}, {np.nanmax(colmax):.2f}] dBZ")
     
     # Save as COG with custom colormap
-    output_file = '/tmp/colmax.cog'
+    output_file = Path(DEFAULT_OUTPUT_DIR) / 'colmax.cog'
     save_product_as_geotiff(
         colmax,
         geometry,
@@ -262,15 +247,10 @@ def example_5_wgs84_projection():
     print("EXAMPLE 5: GeoTIFF with WGS84 projection")
     print("=" * 60)
     
-    file = '/workspaces/radar-processor/data/netcdf/RMA3_0315_01_20251215T215802Z.nc'
-    radar = pyart.io.read(file)
-    
-    info = get_radar_info(radar)
-    radar_lat = info['latitude']
-    radar_lon = info['longitude']
-    
-    geometry_dir = '/workspaces/radar-processor/output/geometry'
-    geometry = load_geometry(f'{geometry_dir}/RMA1_0315_01_RES1500_TOA12000_FAC017_MR250_geometry.npz')
+    # Load test data
+    radar, geometry, radar_lat, radar_lon = load_test_data()
+    if radar is None:
+        return
     
     dbzh_data = get_field_data(radar, 'DBZH')
     grid_dbzh = apply_geometry(geometry, dbzh_data)
@@ -278,7 +258,7 @@ def example_5_wgs84_projection():
     cappi = constant_altitude_ppi(grid_dbzh, geometry, altitude=2000.0)
     
     # Save with WGS84 projection (EPSG:4326)
-    output_file = '/tmp/cappi_2km_wgs84.cog'
+    output_file = Path(DEFAULT_OUTPUT_DIR) / 'cappi_2km_wgs84.cog'
     save_product_as_geotiff(
         cappi,
         geometry,
@@ -302,17 +282,18 @@ def example_6_multiple_altitudes():
     """
     print("=" * 60)
     print("EXAMPLE 6: Multiple CAPPI altitudes")
+def example_6_multiple_altitudes():
+    """
+    Example 6: Generate CAPPIs at multiple altitudes
+    """
+    print("=" * 60)
+    print("EXAMPLE 6: Multiple CAPPI altitudes")
     print("=" * 60)
     
-    file = '/workspaces/radar-processor/data/netcdf/RMA3_0315_01_20251215T215802Z.nc'
-    radar = pyart.io.read(file)
-    
-    info = get_radar_info(radar)
-    radar_lat = info['latitude']
-    radar_lon = info['longitude']
-    
-    geometry_dir = '/workspaces/radar-processor/output/geometry'
-    geometry = load_geometry(f'{geometry_dir}/RMA1_0315_01_RES1500_TOA12000_FAC017_MR250_geometry.npz')
+    # Load test data
+    radar, geometry, radar_lat, radar_lon = load_test_data()
+    if radar is None:
+        return
     
     dbzh_data = get_field_data(radar, 'DBZH')
     grid_dbzh = apply_geometry(geometry, dbzh_data)
@@ -327,7 +308,7 @@ def example_6_multiple_altitudes():
             print(f"  Skipping {altitude}m: all NaN")
             continue
         
-        output_file = f'/tmp/cappi_{altitude}m.cog'
+        output_file = Path(DEFAULT_OUTPUT_DIR) / f'cappi_{altitude}m.cog'
         save_product_as_geotiff(
             cappi,
             geometry,
