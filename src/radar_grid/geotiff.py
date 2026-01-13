@@ -229,7 +229,7 @@ def create_geotiff(
     # Use Azimuthal Equidistant projection centered on radar
     local_proj = pyproj.Proj(proj='aeqd', lat_0=radar_lat, lon_0=radar_lon, 
                              x_0=0, y_0=0, datum='WGS84')
-    wgs84_proj = pyproj.Proj(proj='latlong', datum='WGS84')
+    wgs84_proj = pyproj.CRS('EPSG:4326')
     
     # Get corner coordinates in geographic space (WGS84)
     transformer_to_wgs84 = pyproj.Transformer.from_proj(local_proj, wgs84_proj, always_xy=True)
@@ -417,7 +417,7 @@ def create_cog(
     # Convert from radar-relative Cartesian (meters) to geographic coordinates
     local_proj = pyproj.Proj(proj='aeqd', lat_0=radar_lat, lon_0=radar_lon, 
                              x_0=0, y_0=0, datum='WGS84')
-    wgs84_proj = pyproj.Proj(proj='latlong', datum='WGS84')
+    wgs84_proj = pyproj.CRS('EPSG:4326')
     
     # Transform corners to WGS84
     transformer_to_wgs84 = pyproj.Transformer.from_proj(local_proj, wgs84_proj, always_xy=True)

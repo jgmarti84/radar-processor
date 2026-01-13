@@ -8,10 +8,20 @@ Demonstrates how to:
 3. Save them as Cloud-Optimized GeoTIFF (COG) files
 4. Apply custom colormaps and value ranges
 5. Use Web Mercator projection
+
+IMPORTANT: Before running these examples, update the file paths in each
+example function to match your environment, or modify the examples to accept
+paths as command-line arguments.
+
+Example paths to update:
+- radar_file: Path to your radar NetCDF file
+- geometry_file: Path to your precomputed geometry file
 """
 
 import pyart
 import numpy as np
+import sys
+from pathlib import Path
 
 from radar_grid import (
     get_radar_info, 
@@ -27,6 +37,45 @@ from radar_grid import (
 )
 
 
+# ============================================================================
+# CONFIGURATION - Update these paths to match your environment
+# ============================================================================
+DEFAULT_RADAR_FILE = 'data/netcdf/radar_file.nc'
+DEFAULT_GEOMETRY_FILE = 'output/geometry/radar_geometry.npz'
+DEFAULT_OUTPUT_DIR = '/tmp'  # Change to your preferred output directory
+# ============================================================================
+
+
+def load_test_data(radar_file=None, geometry_file=None):
+    """
+    Helper function to load radar and geometry data.
+    
+    Returns (radar, geometry, radar_lat, radar_lon) or (None, None, None, None) on error.
+    """
+    radar_file = radar_file or DEFAULT_RADAR_FILE
+    geometry_file = geometry_file or DEFAULT_GEOMETRY_FILE
+    
+    try:
+        radar = pyart.io.read(radar_file)
+    except (FileNotFoundError, Exception) as e:
+        print(f"  ⚠ Error loading radar file '{radar_file}': {e}")
+        print("  Please update DEFAULT_RADAR_FILE in the script or pass a valid path.")
+        return None, None, None, None
+    
+    try:
+        geometry = load_geometry(geometry_file)
+    except (FileNotFoundError, Exception) as e:
+        print(f"  ⚠ Error loading geometry file '{geometry_file}': {e}")
+        print("  Please update DEFAULT_GEOMETRY_FILE in the script or generate geometry first.")
+        return None, None, None, None
+    
+    info = get_radar_info(radar)
+    radar_lat = info['latitude']
+    radar_lon = info['longitude']
+    
+    return radar, geometry, radar_lat, radar_lon
+
+
 def example_1_basic_cappi_geotiff():
     """
     Example 1: Create a basic CAPPI and save as GeoTIFF
@@ -35,19 +84,12 @@ def example_1_basic_cappi_geotiff():
     print("EXAMPLE 1: Basic CAPPI to GeoTIFF")
     print("=" * 60)
     
-    # Load radar file
-    file = '/workspaces/radar-processor/data/netcdf/RMA3_0315_01_20251215T215802Z.nc'
-    radar = pyart.io.read(file)
+    # Load test data
+    radar, geometry, radar_lat, radar_lon = load_test_data()
+    if radar is None:
+        return
     
-    # Get radar location
-    info = get_radar_info(radar)
-    radar_lat = info['latitude']
-    radar_lon = info['longitude']
     print(f"Radar location: {radar_lat:.4f}°N, {radar_lon:.4f}°E")
-    
-    # Load pre-computed geometry
-    geometry_dir = '/workspaces/radar-processor/output/geometry'
-    geometry = load_geometry(f'{geometry_dir}/RMA1_0315_01_RES1500_TOA12000_FAC017_MR250_geometry.npz')
     print(f"Grid geometry: {geometry}")
     
     # Get field data and interpolate
@@ -60,7 +102,7 @@ def example_1_basic_cappi_geotiff():
     print(f"CAPPI value range: [{np.nanmin(cappi):.2f}, {np.nanmax(cappi):.2f}] dBZ")
     
     # Save as GeoTIFF (standard, not COG)
-    output_file = '/tmp/cappi_3km.tif'
+    output_file = Path(DEFAULT_OUTPUT_DIR) / 'cappi_3km.tif'
     create_geotiff(
         cappi, 
         geometry, 
