@@ -282,12 +282,6 @@ def example_6_multiple_altitudes():
     """
     print("=" * 60)
     print("EXAMPLE 6: Multiple CAPPI altitudes")
-def example_6_multiple_altitudes():
-    """
-    Example 6: Generate CAPPIs at multiple altitudes
-    """
-    print("=" * 60)
-    print("EXAMPLE 6: Multiple CAPPI altitudes")
     print("=" * 60)
     
     # Load test data
