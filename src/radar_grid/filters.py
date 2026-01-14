@@ -384,6 +384,90 @@ class GateFilter:
         mask = range_2d.ravel() > range_max
         return self._add_filter(mask, f"range > {range_max}m")
     
+    def exclude_below_elevation_angle(self, min_elev: float) -> 'GateFilter':
+        """
+        Exclude gates with elevation angle below a threshold.
+        
+        Parameters
+        ----------
+        min_elev : float
+            Minimum elevation angle in degrees
+        
+        Returns
+        -------
+        self : GateFilter
+            Returns self for method chaining
+        
+        Notes
+        -----
+        Elevation angles are per-ray, so all gates in a ray with elevation
+        below the threshold will be excluded. Useful for filtering out 
+        low-elevation scans that may have ground clutter or be affected by terrain.
+        
+        Example
+        -------
+        >>> gf.exclude_below_elevation_angle(2.0)  # Exclude angles < 2 degrees
+        """
+        elev_angles = self.radar.elevation['data']  # shape (nrays,)
+        elev_repeated = np.repeat(elev_angles, self.radar.ngates)  # shape (nrays * ngates,)
+        mask = elev_repeated < min_elev
+        return self._add_filter(mask, f"elevation angle < {min_elev}°")
+    
+    def exclude_above_elevation_angle(self, max_elev: float) -> 'GateFilter':
+        """
+        Exclude gates with elevation angle above a threshold.
+        
+        Parameters
+        ----------
+        max_elev : float
+            Maximum elevation angle in degrees
+        
+        Returns
+        -------
+        self : GateFilter
+            Returns self for method chaining
+        
+        Notes
+        -----
+        Elevation angles are per-ray, so all gates in a ray with elevation
+        above the threshold will be excluded. Useful for filtering out very 
+        high elevation angles where the beam is nearly vertical and gate 
+        volumes become very large or sampling becomes sparse.
+        
+        Example
+        -------
+        >>> gf.exclude_above_elevation_angle(30.0)  # Exclude angles > 30 degrees
+        """
+        elev_angles = self.radar.elevation['data']  # shape (nrays,)
+        elev_repeated = np.repeat(elev_angles, self.radar.ngates)  # shape (nrays * ngates,)
+        mask = elev_repeated > max_elev
+        return self._add_filter(mask, f"elevation angle > {max_elev}°")
+    
+    def exclude_outside_elevation_range(self, min_elev: float, max_elev: float) -> 'GateFilter':
+        """
+        Exclude gates with elevation angle outside [min_elev, max_elev] range.
+        
+        Parameters
+        ----------
+        min_elev : float
+            Minimum elevation angle in degrees (inclusive)
+        max_elev : float
+            Maximum elevation angle in degrees (inclusive)
+        
+        Returns
+        -------
+        self : GateFilter
+            Returns self for method chaining
+        
+        Example
+        -------
+        >>> gf.exclude_outside_elevation_range(1.0, 25.0)
+        """
+        elev_angles = self.radar.elevation['data']  # shape (nrays,)
+        elev_repeated = np.repeat(elev_angles, self.radar.ngates)  # shape (nrays * ngates,)
+        mask = (elev_repeated < min_elev) | (elev_repeated > max_elev)
+        return self._add_filter(mask, f"elevation angle outside [{min_elev}°, {max_elev}°]")
+    
     # -------------------------------------------------------------------------
     # Custom filters
     # -------------------------------------------------------------------------
