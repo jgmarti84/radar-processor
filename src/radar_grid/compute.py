@@ -4,12 +4,15 @@ Geometry computation with optional parallel processing.
 
 import gc
 import os
+import logging
 import numpy as np
 from typing import Tuple, Optional
 from multiprocessing import Pool, cpu_count
 from scipy.spatial import cKDTree
 
 from .geometry import GridGeometry
+
+logger = logging.getLogger(__name__)
 
 
 def _process_single_level(args) -> Tuple[int, int, str]:
@@ -191,10 +194,10 @@ def compute_grid_geometry(
     n_valid_gates = gate_valid_mask.sum()
     n_excluded = gate_z_relative.shape[0] - n_valid_gates
     
-    print(f"Radar altitude: {radar_altitude:.1f} m")
-    print(f"Gate Z range (relative to radar): {gate_z_relative.min():.1f} to {gate_z_relative.max():.1f} m")
-    print(f"TOA filter: {n_valid_gates:,} gates below {toa}m (above radar), {n_excluded:,} excluded")
-    print(f"Processing {nz} z-levels with {n_workers} worker(s)...")
+    logger.info(f"Radar altitude: {radar_altitude:.1f} m")
+    logger.info(f"Gate Z range (relative to radar): {gate_z_relative.min():.1f} to {gate_z_relative.max():.1f} m")
+    logger.info(f"TOA filter: {n_valid_gates:,} gates below {toa}m (above radar), {n_excluded:,} excluded")
+    logger.info(f"Processing {nz} z-levels with {n_workers} worker(s)...")
     
     # Use gate_z_relative for geometry computation
     args_list = [
@@ -208,14 +211,14 @@ def compute_grid_geometry(
         results = []
         for args in args_list:
             result = _process_single_level(args)
-            print(f"  Level {result[0]}: {result[1]:,} pairs")
+            logger.debug(f"  Level {result[0]}: {result[1]:,} pairs")
             results.append(result)
     else:
         # Parallel processing
         with Pool(n_workers) as pool:
             results = []
             for result in pool.imap_unordered(_process_single_level, args_list):
-                print(f"  Level {result[0]}: {result[1]:,} pairs")
+                logger.debug(f"  Level {result[0]}: {result[1]:,} pairs")
                 results.append(result)
     
     # Sort results by level index
@@ -223,7 +226,7 @@ def compute_grid_geometry(
     
     total_pairs = sum(r[1] for r in results)
     total_grid_points = ny * nx * nz
-    print(f"\nMerging {nz} levels ({total_pairs:,} total pairs)...")
+    logger.info(f"Merging {nz} levels ({total_pairs:,} total pairs)...")
     
     # Pre-allocate arrays with known sizes - much more memory efficient!
     final_indptr = np.zeros(total_grid_points + 1, dtype='int32')
@@ -268,7 +271,7 @@ def compute_grid_geometry(
         # Force garbage collection after each level to keep memory low
         gc.collect()
     
-    print("Merge complete.")
+    logger.info("Merge complete.")
     
     # Return using pre-allocated arrays directly (no copying needed!)
     return GridGeometry(

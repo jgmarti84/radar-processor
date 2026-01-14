@@ -7,9 +7,12 @@ Includes:
 - Earth curvature corrections
 """
 
+import logging
 import numpy as np
 from typing import Tuple, Optional, Union
 from .geometry import GridGeometry
+
+logger = logging.getLogger(__name__)
 
 
 # Constants for Earth curvature calculations
@@ -365,7 +368,7 @@ def constant_altitude_ppi(
     
     # Check if altitude is within grid bounds
     if altitude < z_min or altitude > z_max:
-        print(f"Warning: altitude {altitude}m is outside grid range [{z_min}, {z_max}]m")
+        logger.warning(f"Altitude {altitude}m is outside grid range [{z_min}, {z_max}]m")
         return np.full((ny, nx), np.nan, dtype='float32')
     
     # Find the z-index corresponding to the target altitude

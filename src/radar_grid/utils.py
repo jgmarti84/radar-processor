@@ -2,8 +2,11 @@
 Utility functions for PyART integration.
 """
 
+import logging
 import numpy as np
 from typing import Tuple
+
+logger = logging.getLogger(__name__)
 
 
 def get_gate_coordinates(radar) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:

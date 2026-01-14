@@ -6,6 +6,7 @@ into georeferenced GeoTIFF images with optional colormap application and
 Cloud-Optimized GeoTIFF (COG) format.
 """
 
+import logging
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -19,6 +20,8 @@ from affine import Affine
 import pyproj
 
 from .geometry import GridGeometry
+
+logger = logging.getLogger(__name__)
 
 
 def _string_to_resampling(method: str) -> Resampling:
