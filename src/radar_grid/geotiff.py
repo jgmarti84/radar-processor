@@ -40,11 +40,6 @@ def _string_to_resampling(method: str) -> Resampling:
     ValueError
         If method is not valid
     """
-    
-    
-    
-    
-    
     method_map = {
         'nearest': Resampling.nearest,
         'bilinear': Resampling.bilinear,

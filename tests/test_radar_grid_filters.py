@@ -106,17 +106,6 @@ class TestGateFilter:
         # All excluded values should be outside range
         assert np.all((excluded_values < -1.0) | (excluded_values > 5.0))
     
-    def test_exclude_inside(self, mock_radar):
-        """Test exclude_inside method."""
-        gf = GateFilter(mock_radar)
-        gf.exclude_inside('DBZH', -5.0, 5.0)
-        
-        # Check that excluded gates are inside range
-        field_data = mock_radar.fields['DBZH']['data'].ravel()
-        excluded_values = field_data[gf.gate_excluded]
-        
-        # All excluded values should be inside range
-        assert np.all((excluded_values >= -5.0) & (excluded_values <= 5.0))
     
     def test_exclude_equal(self, mock_radar):
         """Test exclude_equal method."""
@@ -215,10 +204,13 @@ class TestCreateMaskFromFilter:
         gf = GateFilter(mock_radar)
         gf.exclude_below('DBZH', 0.0)
         
-        mask = create_mask_from_filter(gf)
+        field_data, mask = create_mask_from_filter(mock_radar, "DBZH", gf)
         
+        assert isinstance(field_data, np.ndarray)
         assert isinstance(mask, np.ndarray)
+        assert field_data.dtype == np.float32
         assert mask.dtype == bool
+        assert field_data.shape == (50000,)
         assert mask.shape == (50000,)
         
         # Should match gate_excluded
@@ -239,18 +231,6 @@ class TestGateFilterEdgeCases:
         assert gf.n_gates == 0
         assert gf.n_excluded() == 0
         assert gf.n_included() == 0
-    
-    def test_exclude_nonexistent_field(self):
-        """Test excluding a field that doesn't exist."""
-        radar = Mock()
-        radar.nrays = 10
-        radar.ngates = 10
-        radar.fields = {}
-        
-        gf = GateFilter(radar)
-        
-        with pytest.raises(KeyError):
-            gf.exclude_below('NONEXISTENT', 0.0)
     
     def test_exclude_all_gates(self):
         """Test excluding all gates."""

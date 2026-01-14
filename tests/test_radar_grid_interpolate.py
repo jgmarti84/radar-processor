@@ -42,7 +42,7 @@ class TestApplyGeometry:
         # Create field data for 16 gates
         field_data = np.ma.array(np.arange(16, dtype=np.float32))
         
-        result = apply_geometry(simple_geometry, field_data)
+        result = apply_geometry(simple_geometry, np.ma.masked_invalid(field_data))
         
         assert result.shape == (2, 2, 2)
         assert result.dtype == np.float32
@@ -52,7 +52,7 @@ class TestApplyGeometry:
         field_data = np.ma.array(np.ones(16, dtype=np.float32) * 10.0)
         field_data[0:4] = np.nan
         
-        result = apply_geometry(simple_geometry, field_data)
+        result = apply_geometry(simple_geometry, np.ma.masked_invalid(field_data))
         
         assert result.shape == (2, 2, 2)
         # First grid point should be NaN since its gates are NaN
@@ -86,7 +86,7 @@ class TestApplyGeometry:
         
         field_data = np.ma.array([10.0, 20.0], dtype=np.float32)
         
-        result = apply_geometry(geometry, field_data)
+        result = apply_geometry(geometry, np.ma.masked_invalid(field_data))
         
         # Expected: (10*0.3 + 20*0.7) / (0.3 + 0.7) = (3 + 14) / 1.0 = 17.0
         expected = 17.0
@@ -126,7 +126,7 @@ class TestApplyGeometry:
         
         field_data = np.ma.array([10.0], dtype=np.float32)
         
-        result = apply_geometry(geometry, field_data, fill_value=-9999.0)
+        result = apply_geometry(geometry, np.ma.masked_invalid(field_data), fill_value=-9999.0)
         
         # Should use fill_value for point with no gates
         assert result[0, 0, 0] == -9999.0
@@ -175,7 +175,8 @@ class TestApplyGeometryMulti:
             'ZDR': np.ma.array(np.ones(16, dtype=np.float32) * 2.0),
             'RHOHV': np.ma.array(np.ones(16, dtype=np.float32) * 0.95)
         }
-        
+        for k, v in fields.items():
+            fields[k] = np.ma.masked_invalid(v)
         results = apply_geometry_multi(simple_geometry, fields)
         
         assert isinstance(results, dict)
@@ -193,14 +194,20 @@ class TestApplyGeometryMulti:
             'DBZH': np.ma.array(np.ones(16, dtype=np.float32) * 10.0),
             'ZDR': np.ma.array(np.ones(16, dtype=np.float32) * 2.0)
         }
-        
+        for k, v in fields.items():
+            fields[k] = np.ma.masked_invalid(v)
         # Create mock filter
         radar = Mock()
         radar.nrays = 4
         radar.ngates = 4
+        radar.fields = {
+            'DBZH': {'data': np.ones((4, 4), dtype=np.float32) * 10.0}
+        }
+
         gf = GateFilter(radar)
+        gf.exclude_below('DBZH', 5.0)
         
-        results = apply_geometry_multi(simple_geometry, fields, additional_filters=gf)
+        results = apply_geometry_multi(simple_geometry, fields, additional_filters={"DBZH": gf})
         
         assert len(results) == 2
 
@@ -219,7 +226,7 @@ class TestApplyGeometryEdgeCases:
             toa=2000.0
         )
         
-        field_data = np.ma.array([10.0], dtype=np.float32)
+        field_data = np.ma.masked_invalid(np.ma.array([10.0], dtype=np.float32))
         
         result = apply_geometry(geometry, field_data)
         
@@ -237,7 +244,7 @@ class TestApplyGeometryEdgeCases:
             toa=2000.0
         )
         
-        field_data = np.ma.array([10.0, 20.0, 30.0], dtype=np.float32)
+        field_data = np.ma.masked_invalid(np.ma.array([10.0, 20.0, 30.0], dtype=np.float32))
         
         result = apply_geometry(geometry, field_data)
         
@@ -257,10 +264,10 @@ class TestApplyGeometryEdgeCases:
             toa=2000.0
         )
         
-        field_data = np.ma.array(
+        field_data = np.ma.masked_invalid(np.ma.array(
             [10.0, np.nan, 30.0],
             dtype=np.float32
-        )
+        ))
         
         result = apply_geometry(geometry, field_data)
         
@@ -284,7 +291,7 @@ class TestApplyGeometryWithInfValues:
             toa=2000.0
         )
         
-        field_data = np.ma.array([10.0, np.inf, 30.0], dtype=np.float32)
+        field_data = np.ma.masked_invalid(np.ma.array([10.0, np.inf, 30.0], dtype=np.float32))
         
         result = apply_geometry(geometry, field_data)
         
@@ -302,7 +309,7 @@ class TestApplyGeometryWithInfValues:
             toa=2000.0
         )
         
-        field_data = np.ma.array([10.0, -np.inf], dtype=np.float32)
+        field_data = np.ma.masked_invalid(np.ma.array([10.0, -np.inf], dtype=np.float32))
         
         result = apply_geometry(geometry, field_data)
         

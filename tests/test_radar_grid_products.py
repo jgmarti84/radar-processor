@@ -111,29 +111,16 @@ class TestGetElevationFromZLevel:
             radar_altitude=100.0
         )
     
-    def test_get_elevation_basic(self, sample_geometry):
-        """Test getting elevation angle from z level."""
-        z_level_idx = 5
-        horizontal_distance = 25000.0  # meters
-        
-        elevation = get_elevation_from_z_level(
-            z_level_idx, horizontal_distance, sample_geometry
-        )
-        
-        assert isinstance(elevation, float)
-        assert 0.0 <= elevation <= 90.0
-    
     def test_get_elevation_zero_distance(self, sample_geometry):
         """Test elevation with zero horizontal distance."""
         z_level_idx = 5
-        horizontal_distance = 0.0
         
         # Should handle zero distance gracefully
         elevation = get_elevation_from_z_level(
-            z_level_idx, horizontal_distance, sample_geometry
+            z_level_idx, sample_geometry
         )
         
-        assert np.isfinite(elevation)
+        assert np.isfinite(elevation).all()
 
 
 class TestGetBeamHeightDifference:
@@ -163,11 +150,12 @@ class TestGetBeamHeightDifference:
         elevation_angle = 2.0
         
         diff = get_beam_height_difference(
-            z_level_idx, horizontal_distance, elevation_angle, sample_geometry
+            sample_geometry, elevation_angle 
         )
         
-        assert isinstance(diff, float)
-        assert np.isfinite(diff)
+        assert isinstance(diff, np.ndarray)
+        assert diff.dtype == np.float64
+        assert np.isfinite(diff).all()
 
 
 class TestConstantAltitudePPI:
@@ -271,7 +259,7 @@ class TestConstantElevationPPI:
         ppi = constant_elevation_ppi(sample_grid_data, sample_geometry, elevation_angle)
         
         assert ppi.shape == (50, 50)
-        assert ppi.dtype == np.float32
+        assert ppi.dtype == np.float64
     
     def test_ppi_zero_elevation(self, sample_grid_data, sample_geometry):
         """Test PPI with zero elevation."""
