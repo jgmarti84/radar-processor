@@ -3,9 +3,12 @@ Quick visualization for notebook testing.
 Save to: /workspaces/radar-processor/src/radar_grid/visualization.py
 """
 
+import logging
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Optional, Tuple, Dict
+
+logger = logging.getLogger(__name__)
 
 # Default color maps and ranges for common radar fields
 FIELD_CONFIGS = {

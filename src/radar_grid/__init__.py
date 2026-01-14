@@ -27,6 +27,12 @@ from .products import (
     EARTH_RADIUS,
     EFFECTIVE_RADIUS_FACTOR,
 )
+from .geotiff import (
+    create_geotiff,
+    create_cog,
+    save_product_as_geotiff,
+    apply_colormap_to_array,
+)
 # from .products import (
 #     constant_elevation_ppi,
 #     column_max,
@@ -74,6 +80,11 @@ __all__ = [
     "compute_beam_height_flat",
     "EARTH_RADIUS",
     "EFFECTIVE_RADIUS_FACTOR",
+    # GeoTIFF generation
+    "create_geotiff",
+    "create_cog",
+    "save_product_as_geotiff",
+    "apply_colormap_to_array",
 ]
 # """
 # radar_grid - Fast radar gridding with precomputed geometry

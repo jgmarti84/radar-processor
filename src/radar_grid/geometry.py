@@ -3,9 +3,12 @@ GridGeometry class and serialization functions.
 """
 
 import os
+import logging
 import numpy as np
 from dataclasses import dataclass
 from typing import Tuple
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -112,7 +115,7 @@ def save_geometry(geometry: GridGeometry, filepath: str) -> None:
         radar_altitude=np.array([geometry.radar_altitude])
     )
     file_size_mb = os.path.getsize(filepath) / 1e6
-    print(f"Saved geometry to {filepath} ({file_size_mb:.1f} MB on disk)")
+    logger.info(f"Saved geometry to {filepath} ({file_size_mb:.1f} MB on disk)")
 
 
 def load_geometry(filepath: str) -> GridGeometry:
@@ -143,5 +146,5 @@ def load_geometry(filepath: str) -> GridGeometry:
         toa=float(data['toa'][0]) if 'toa' in data else np.inf,
         radar_altitude=float(data['radar_altitude'][0]) if 'radar_altitude' in data else 0.0
     )
-    print(f"Loaded geometry: {geometry.memory_usage_mb():.1f} MB in memory, toa={geometry.toa}m")
+    logger.info(f"Loaded geometry: {geometry.memory_usage_mb():.1f} MB in memory, toa={geometry.toa}m")
     return geometry

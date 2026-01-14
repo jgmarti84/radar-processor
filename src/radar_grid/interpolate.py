@@ -2,11 +2,14 @@
 Fast field interpolation using precomputed geometry.
 """
 
+import logging
 import numpy as np
 from typing import Dict, Optional, List
 
 from .filters import GateFilter
 from .geometry import GridGeometry
+
+logger = logging.getLogger(__name__)
 
 
 def apply_geometry(
