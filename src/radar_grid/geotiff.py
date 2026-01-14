@@ -260,13 +260,7 @@ def create_geotiff(
     # Transform to target projection if not WGS84
     target_proj = pyproj.CRS(projection)
     
-    # Debug output to verify projection handling
-    print(f"[DEBUG] Target projection: {projection}")
-    print(f"[DEBUG] Target EPSG: {target_proj.to_epsg()}")
-    print(f"[DEBUG] Is WGS84: {target_proj.to_epsg() == 4326}")
-    
     if target_proj.to_epsg() != 4326:  # Not WGS84
-        print(f"[DEBUG] Transforming to non-WGS84 projection...")
         transformer_to_target = pyproj.Transformer.from_crs(
             'EPSG:4326', target_proj, always_xy=True
         )
@@ -285,21 +279,13 @@ def create_geotiff(
         south_proj = min(target_corners_y)
         north_proj = max(target_corners_y)
         
-        print(f"[DEBUG] WGS84 bounds: W={west:.6f}, E={east:.6f}, S={south:.6f}, N={north:.6f}")
-        print(f"[DEBUG] Projected bounds: W={west_proj:.2f}, E={east_proj:.2f}, S={south_proj:.2f}, N={north_proj:.2f}")
-        
         # Create transform for target projection
         transform = from_bounds(west_proj, south_proj, east_proj, north_proj, nx, ny)
         crs = target_proj
     else:
-        print(f"[DEBUG] Using WGS84 directly (no transformation)")
         # Use WGS84
-        print(f"[DEBUG] WGS84 bounds: W={west:.6f}, E={east:.6f}, S={south:.6f}, N={north:.6f}")
         transform = from_bounds(west, south, east, north, nx, ny)
         crs = 'EPSG:4326'
-    
-    print(f"[DEBUG] Final CRS: {crs}")
-    print(f"[DEBUG] Final transform: {transform}")
     
     # Write GeoTIFF
     with rasterio.open(
@@ -460,13 +446,7 @@ def create_cog(
     # Transform to target projection
     target_proj = pyproj.CRS(projection)
     
-    # Debug output to verify projection handling
-    print(f"[DEBUG COG] Target projection: {projection}")
-    print(f"[DEBUG COG] Target EPSG: {target_proj.to_epsg()}")
-    print(f"[DEBUG COG] Is WGS84: {target_proj.to_epsg() == 4326}")
-    
     if target_proj.to_epsg() != 4326:
-        print(f"[DEBUG COG] Transforming to non-WGS84 projection...")
         transformer_to_target = pyproj.Transformer.from_crs(
             'EPSG:4326', target_proj, always_xy=True
         )
@@ -484,19 +464,11 @@ def create_cog(
         south_proj = min(target_corners_y)
         north_proj = max(target_corners_y)
         
-        print(f"[DEBUG COG] WGS84 bounds: W={west:.6f}, E={east:.6f}, S={south:.6f}, N={north:.6f}")
-        print(f"[DEBUG COG] Projected bounds: W={west_proj:.2f}, E={east_proj:.2f}, S={south_proj:.2f}, N={north_proj:.2f}")
-        
         transform = from_bounds(west_proj, south_proj, east_proj, north_proj, nx, ny)
         crs = target_proj
     else:
-        print(f"[DEBUG COG] Using WGS84 directly (no transformation)")
-        print(f"[DEBUG COG] WGS84 bounds: W={west:.6f}, E={east:.6f}, S={south:.6f}, N={north:.6f}")
         transform = from_bounds(west, south, east, north, nx, ny)
         crs = 'EPSG:4326'
-    
-    print(f"[DEBUG COG] Final CRS: {crs}")
-    print(f"[DEBUG COG] Final transform: {transform}")
     
     # Convert resampling method string to enum
     resampling_enum = _string_to_resampling(resampling_method)
