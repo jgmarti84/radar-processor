@@ -40,17 +40,25 @@ def _string_to_resampling(method: str) -> Resampling:
     ValueError
         If method is not valid
     """
+    
+    
+    
+    
+    
     method_map = {
         'nearest': Resampling.nearest,
         'bilinear': Resampling.bilinear,
         'cubic': Resampling.cubic,
         'average': Resampling.average,
         'mode': Resampling.mode,
-        'max': Resampling.max,
-        'min': Resampling.min,
-        'med': Resampling.med,
-        'q1': Resampling.q1,
-        'q3': Resampling.q3,
+        'gauss': Resampling.gauss, 
+        'cubic_spline': Resampling.cubic_spline, 
+        'lanczos': Resampling.lanczos, 
+        # 'max': Resampling.max,
+        # 'min': Resampling.min,
+        # 'med': Resampling.med,
+        # 'q1': Resampling.q1,
+        # 'q3': Resampling.q3,
         'rms': Resampling.rms,
     }
     

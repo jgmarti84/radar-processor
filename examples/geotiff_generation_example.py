@@ -20,10 +20,12 @@ Example paths to update:
 
 import pyart
 import numpy as np
-import sys
+import os
 from pathlib import Path
+from typing import Tuple, Union, Optional
 
 from radar_grid import (
+    GridGeometry,
     get_radar_info, 
     load_geometry, 
     get_field_data, 
@@ -40,13 +42,13 @@ from radar_grid import (
 # ============================================================================
 # CONFIGURATION - Update these paths to match your environment
 # ============================================================================
-DEFAULT_RADAR_FILE = 'data/netcdf/radar_file.nc'
-DEFAULT_GEOMETRY_FILE = 'output/geometry/radar_geometry.npz'
-DEFAULT_OUTPUT_DIR = '/tmp'  # Change to your preferred output directory
+DEFAULT_RADAR_FILE = 'data/netcdf/RMA1_0315_01_20251208T191648Z.nc'
+DEFAULT_GEOMETRY_FILE = 'output/geometry/RMA1_0315_01_RES1500_TOA12000_FAC017_MR250_geometry.npz'
+DEFAULT_OUTPUT_DIR = 'output/geotiff_generation'  # Change to your preferred output directory
 # ============================================================================
 
 
-def load_test_data(radar_file=None, geometry_file=None):
+def load_test_data(radar_file: Optional[str] = None, geometry_file: Optional[str] = None) -> Tuple[pyart.core.Radar, GridGeometry, float, float]:
     """
     Helper function to load radar and geometry data.
     
@@ -60,14 +62,14 @@ def load_test_data(radar_file=None, geometry_file=None):
     except (FileNotFoundError, Exception) as e:
         print(f"  ⚠ Error loading radar file '{radar_file}': {e}")
         print("  Please update DEFAULT_RADAR_FILE in the script or pass a valid path.")
-        return None, None, None, None
+        raise Exception("Radar file loading failed.")
     
     try:
         geometry = load_geometry(geometry_file)
     except (FileNotFoundError, Exception) as e:
         print(f"  ⚠ Error loading geometry file '{geometry_file}': {e}")
         print("  Please update DEFAULT_GEOMETRY_FILE in the script or generate geometry first.")
-        return None, None, None, None
+        raise Exception("Geometry file loading failed.")
     
     info = get_radar_info(radar)
     radar_lat = info['latitude']
@@ -94,15 +96,16 @@ def example_1_basic_cappi_geotiff():
     
     # Get field data and interpolate
     dbzh_data = get_field_data(radar, 'DBZH')
-    grid_dbzh = apply_geometry(geometry, dbzh_data)
+    grid_dbzh = apply_geometry(geometry, dbzh_data) # type: ignore
     
     # Generate CAPPI at 3000m altitude
-    cappi = constant_altitude_ppi(grid_dbzh, geometry, altitude=3000.0)
+    cappi = constant_altitude_ppi(grid_dbzh, geometry, altitude=3000.0) # type: ignore
     print(f"CAPPI shape: {cappi.shape}")
     print(f"CAPPI value range: [{np.nanmin(cappi):.2f}, {np.nanmax(cappi):.2f}] dBZ")
     
     # Save as GeoTIFF (standard, not COG)
     output_file = Path(DEFAULT_OUTPUT_DIR) / 'cappi_3km.tif'
+    os.makedirs(DEFAULT_OUTPUT_DIR, exist_ok=True)
     create_geotiff(
         cappi, 
         geometry, 
@@ -135,10 +138,10 @@ def example_2_cappi_as_cog():
     grid_dbzh = apply_geometry(geometry, dbzh_data)
     
     # Generate CAPPI
-    cappi = constant_altitude_ppi(grid_dbzh, geometry, altitude=3000.0)
+    cappi = constant_altitude_ppi(grid_dbzh, geometry, altitude=1500.0)
     
     # Save as COG with overviews
-    output_file = Path(DEFAULT_OUTPUT_DIR) / 'cappi_3km.cog'
+    output_file = Path(DEFAULT_OUTPUT_DIR) / 'cappi_1.5km.cog'
     create_cog(
         cappi,
         geometry,
@@ -173,12 +176,12 @@ def example_3_ppi_geotiff():
     grid_dbzh = apply_geometry(geometry, dbzh_data)
     
     # Generate PPI at 2.0° elevation
-    ppi = constant_elevation_ppi(grid_dbzh, geometry, elevation_angle=2.0)
+    ppi = constant_elevation_ppi(grid_dbzh, geometry, elevation_angle=1.0)
     print(f"PPI shape: {ppi.shape}")
     print(f"PPI value range: [{np.nanmin(ppi):.2f}, {np.nanmax(ppi):.2f}] dBZ")
     
     # Save as COG using convenience function
-    output_file = Path(DEFAULT_OUTPUT_DIR) / 'ppi_2deg.cog'
+    output_file = Path(DEFAULT_OUTPUT_DIR) / 'ppi_1deg.cog'
     save_product_as_geotiff(
         ppi,
         geometry,
@@ -233,7 +236,7 @@ def example_4_colmax_geotiff():
         projection='EPSG:3857',
         as_cog=True,
         overview_factors=[2, 4, 8, 16],
-        resampling_method='max'  # Preserve max values in overviews
+        resampling_method='cubic_spline'  # Preserve max values in overviews
     )
     print(f"✓ Saved COLMAX as COG: {output_file}")
     print()
@@ -255,10 +258,10 @@ def example_5_wgs84_projection():
     dbzh_data = get_field_data(radar, 'DBZH')
     grid_dbzh = apply_geometry(geometry, dbzh_data)
     
-    cappi = constant_altitude_ppi(grid_dbzh, geometry, altitude=2000.0)
+    cappi = constant_altitude_ppi(grid_dbzh, geometry, altitude=1500.0)
     
     # Save with WGS84 projection (EPSG:4326)
-    output_file = Path(DEFAULT_OUTPUT_DIR) / 'cappi_2km_wgs84.cog'
+    output_file = Path(DEFAULT_OUTPUT_DIR) / 'cappi_1.5km_wgs84.cog'
     save_product_as_geotiff(
         cappi,
         geometry,
@@ -341,7 +344,7 @@ def main():
     # example_2_cappi_as_cog()
     # example_3_ppi_geotiff()
     # example_4_colmax_geotiff()
-    # example_5_wgs84_projection()
+    example_5_wgs84_projection()
     # example_6_multiple_altitudes()
     
     print("=" * 60)

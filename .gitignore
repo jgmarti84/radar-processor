@@ -1,8 +1,9 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -20,28 +21,38 @@ wheels/
 .installed.cfg
 *.egg
 
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
 # Virtual environments
 venv/
 ENV/
 env/
 
-# IDE
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-
 # OS
 .DS_Store
 Thumbs.db
 
-# Temporary
+# Output files
+*.tif
+*.tiff
+*.cog
+*.nc
+output/
 tmp/
-*.tmp
