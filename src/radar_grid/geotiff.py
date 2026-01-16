@@ -222,6 +222,11 @@ def create_geotiff(
     # Apply colormap to get RGBA image
     rgba_image = apply_colormap_to_array(data, cmap, vmin, vmax, nodata_value)
     
+    # Flip the data vertically because rasterio stores images top-to-bottom,
+    # while our grid coordinates increase from bottom to top (south to north).
+    # Without this flip, the image appears upside down.
+    rgba_image = np.flipud(rgba_image)
+    
     # Get grid limits in meters (relative to radar)
     y_min, y_max = geometry.grid_limits[1]
     x_min, x_max = geometry.grid_limits[2]
@@ -415,6 +420,11 @@ def create_cog(
     
     # Apply colormap to get RGBA image
     rgba_image = apply_colormap_to_array(data, cmap, vmin, vmax, nodata_value)
+    
+    # Flip the data vertically because rasterio stores images top-to-bottom,
+    # while our grid coordinates increase from bottom to top (south to north).
+    # Without this flip, the image appears upside down.
+    rgba_image = np.flipud(rgba_image)
     
     # Get grid limits in meters (relative to radar)
     y_min, y_max = geometry.grid_limits[1]
