@@ -1,8 +1,8 @@
 import pyart
 import time
 import numpy as np
-from radar_grid import get_radar_info, load_geometry, get_field_data, apply_geometry, get_available_fields, apply_geometry_multi
-from radar_grid.filters import GateFilter
+from radar_grid import get_radar_info, load_geometry, get_field_data, apply_geometry, get_available_fields, apply_geometry_multi, column_max
+from radar_grid import GateFilter, GridFilter
 
 def main_nofilters():
     print("=" * 60)
@@ -61,9 +61,9 @@ def main_nofilters():
     print("FINISHED RADAR_GRID INTERPOLATION EXAMPLE!")
     print("=" * 60)
 
-def main_withfilters():
+def main_withgatefilters():
     print("=" * 60)
-    print("RADAR_GRID MODULE - INTERPOLATION EXAMPLE WITH FILTERS")
+    print("RADAR_GRID MODULE - INTERPOLATION EXAMPLE WITH GATEFILTERS")
     print("=" * 60)
 
     # Load radar
@@ -130,9 +130,70 @@ def main_withfilters():
         print(f"   {name}: [{np.nanmin(grid):.2f}, {np.nanmax(grid):.2f}]")
 
     print("\n" + "=" * 60)
-    print("FINISHED RADAR_GRID INTERPOLATION EXAMPLE WITH FILTERS!")
+    print("FINISHED RADAR_GRID INTERPOLATION EXAMPLE WITH GATE FILTERS!")
+    print("=" * 60)
+
+def main_withgridfilters():
+    print("=" * 60)
+    print("RADAR_GRID MODULE - INTERPOLATION EXAMPLE WITH GRID FILTERS")
+    print("=" * 60)
+
+    # Load radar
+    file = '/workspaces/radar-processor/data/netcdf/RMA3_0315_01_20251215T215802Z.nc'
+    radar = pyart.io.read(file)
+
+    # 1. Radar info
+    print("\n1. RADAR INFO")
+    print("-" * 40)
+    info = get_radar_info(radar)
+    for k, v in info.items():
+        print(f"   {k}: {v}")
+
+    # 2. Load pre-computed geometry
+    print("\n2. LOAD GEOMETRY")
+    print("-" * 40)
+    geometry_dir = '/workspaces/radar-processor/output/geometry'
+    geometry = load_geometry(f'{geometry_dir}/RMA1_0315_01_RES1500_TOA12000_FAC017_MR250_geometry.npz')
+    print(geometry)
+
+    # 3. Single field interpolation with timing
+    print("\n3. SINGLE FIELD INTERPOLATION WITH FILTERS")
+    print("-" * 40)
+    
+    dbzh_data = get_field_data(radar, 'DBZH')
+
+    gf = GateFilter(radar)
+    gf.exclude_below('DBZH', 5.0)
+    gf.exclude_below('RHOHV', 0.7)
+    print(gf.summary())
+
+    start = time.time()
+    # Here is where the actual interpolation happens
+    grid_dbzh = apply_geometry(geometry, dbzh_data, additional_filters=[gf])
+    elapsed = time.time() - start
+    print(f"   DBZH interpolation: {elapsed:.2f} seconds")
+    print(f"   Shape: {grid_dbzh.shape}")
+    print(f"   Range: [{np.nanmin(grid_dbzh):.2f}, {np.nanmax(grid_dbzh):.2f}] dBZ")
+    print(f"   Valid points: {np.sum(~np.isnan(grid_dbzh)):,} / {grid_dbzh.size:,}")
+
+    colmax = column_max(grid_dbzh, geometry=geometry)
+    print(f"\n   COLMAX before GridFilter:")
+    print(f"   Range: [{np.nanmin(colmax):.2f}, {np.nanmax(colmax):.2f}] dBZ")
+    print(f"   Valid points: {np.sum(~np.isnan(colmax)):,} / {colmax.size:,}")
+    
+    gridf = GridFilter()
+    colmax = gridf.apply_below(colmax, 10.0)
+
+    print(f"\n   COLMAX after GridFilter below 10 dBZ:")
+    print(f"   Range: [{np.nanmin(colmax):.2f}, {np.nanmax(colmax):.2f}] dBZ")
+    print(f"   Valid points: {np.sum(~np.isnan(colmax)):,} / {colmax.size:,}")
+
+
+    print("\n" + "=" * 60)
+    print("FINISHED RADAR_GRID INTERPOLATION EXAMPLE WITH GRID FILTERS!")
     print("=" * 60)
 
 if __name__ == "__main__":
     # main_nofilters()
-    main_withfilters()
+    # main_withgatefilters()
+    main_withgridfilters()

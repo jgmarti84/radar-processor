@@ -13,7 +13,7 @@ from .mpl_visualization import (
     plot_vertical_cross_section,
     FIELD_CONFIGS,
 )
-from .filters import GateFilter, create_mask_from_filter
+from .filters import GateFilter, GridFilter, create_mask_from_filter
 from .products import (
     constant_altitude_ppi,
     constant_elevation_ppi,
@@ -33,13 +33,6 @@ from .geotiff import (
     save_product_as_geotiff,
     apply_colormap_to_array,
 )
-# from .products import (
-#     constant_elevation_ppi,
-#     column_max,
-#     column_min,
-#     column_mean,
-#     get_elevation_from_z_level,
-# )
 
 __version__ = "0.1.0"
 
@@ -67,6 +60,7 @@ __all__ = [
     "FIELD_CONFIGS",
     # Filters
     "GateFilter",
+    "GridFilter",
     "create_mask_from_filter",
     # Products
     "constant_altitude_ppi",

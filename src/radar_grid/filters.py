@@ -596,3 +596,185 @@ def create_mask_from_filter(
         combined_mask = field_mask
     
     return field_data, combined_mask
+
+
+# ============================================================================
+# Grid Filters - Applied after interpolation on 2D projections
+# ============================================================================
+
+# ============================================================================
+# Grid Filters - Applied after interpolation on 2D projections
+# ============================================================================
+
+class GridFilter:
+    """
+    A simple class for filtering 2D grid values after interpolation.
+    
+    This filter works directly on grid arrays, setting values to NaN based
+    on simple threshold criteria.
+    
+    Examples
+    --------
+    >>> # Create a colmax 2D projection
+    >>> colmax = column_max(grid)  # shape (ny, nx)
+    >>> 
+    >>> # Create a filter and apply it
+    >>> gf = GridFilter()
+    >>> filtered = gf.apply_below(colmax, 15)  # Set values < 15 to NaN
+    >>> 
+    >>> # Or chain multiple filters
+    >>> filtered = colmax.copy()
+    >>> filtered = GridFilter().apply_below(filtered, 15)
+    >>> filtered = GridFilter().apply_above(filtered, 45)
+    """
+    
+    def apply_below(self, grid: np.ndarray, threshold: float, fill_value: float = np.nan) -> np.ndarray:
+        """
+        Set grid values below threshold to fill_value (NaN by default).
+        
+        Parameters
+        ----------
+        grid : np.ndarray
+            2D grid array
+        threshold : float
+            Values below this are set to fill_value
+        fill_value : float, optional
+            Value to use for filtered points (default: np.nan)
+        
+        Returns
+        -------
+        np.ndarray
+            Filtered grid (original is not modified)
+        
+        Example
+        -------
+        >>> colmax = np.array([[10, 20, 30], [15, 25, 35]])
+        >>> gf = GridFilter()
+        >>> result = gf.apply_below(colmax, 15)
+        >>> # result[0, 0] = nan, result[0, 1] = 20, etc.
+        """
+        result = grid.copy()
+        result[result < threshold] = fill_value
+        return result
+    
+    def apply_above(self, grid: np.ndarray, threshold: float, fill_value: float = np.nan) -> np.ndarray:
+        """
+        Set grid values above threshold to fill_value (NaN by default).
+        
+        Parameters
+        ----------
+        grid : np.ndarray
+            2D grid array
+        threshold : float
+            Values above this are set to fill_value
+        fill_value : float, optional
+            Value to use for filtered points (default: np.nan)
+        
+        Returns
+        -------
+        np.ndarray
+            Filtered grid (original is not modified)
+        
+        Example
+        -------
+        >>> colmax = np.array([[10, 20, 30], [15, 25, 45]])
+        >>> gf = GridFilter()
+        >>> result = gf.apply_above(colmax, 45)
+        >>> # result[0, 2] = 30, result[1, 2] = nan, etc.
+        """
+        result = grid.copy()
+        result[result > threshold] = fill_value
+        return result
+    
+    def apply_outside_range(self, grid: np.ndarray, vmin: float, vmax: float, 
+                           fill_value: float = np.nan) -> np.ndarray:
+        """
+        Set grid values outside [vmin, vmax] range to fill_value (NaN by default).
+        
+        Parameters
+        ----------
+        grid : np.ndarray
+            2D grid array
+        vmin : float
+            Minimum value (inclusive)
+        vmax : float
+            Maximum value (inclusive)
+        fill_value : float, optional
+            Value to use for filtered points (default: np.nan)
+        
+        Returns
+        -------
+        np.ndarray
+            Filtered grid (original is not modified)
+        
+        Example
+        -------
+        >>> colmax = np.array([[10, 20, 30], [15, 25, 35]])
+        >>> gf = GridFilter()
+        >>> result = gf.apply_outside_range(colmax, 15, 35)
+        >>> # Values < 15 or > 35 become nan
+        """
+        result = grid.copy()
+        mask = (result < vmin) | (result > vmax)
+        result[mask] = fill_value
+        return result
+    
+    def apply_invalid(self, grid: np.ndarray, fill_value: float = np.nan) -> np.ndarray:
+        """
+        Set NaN and Inf values to fill_value.
+        
+        Parameters
+        ----------
+        grid : np.ndarray
+            2D grid array
+        fill_value : float, optional
+            Value to use for invalid points (default: np.nan)
+        
+        Returns
+        -------
+        np.ndarray
+            Filtered grid (original is not modified)
+        
+        Example
+        -------
+        >>> colmax = np.array([[10, np.nan, 30], [15, np.inf, 35]])
+        >>> gf = GridFilter()
+        >>> result = gf.apply_invalid(colmax)
+        >>> # All NaN and Inf values remain as nan (or fill_value)
+        """
+        result = grid.copy()
+        mask = np.isnan(result) | np.isinf(result)
+        result[mask] = fill_value
+        return result
+    
+    def apply_custom(self, grid: np.ndarray, func: Callable[[np.ndarray], np.ndarray],
+                    fill_value: float = np.nan) -> np.ndarray:
+        """
+        Apply a custom function to determine which points to filter.
+        
+        Parameters
+        ----------
+        grid : np.ndarray
+            2D grid array
+        func : callable
+            Function that takes the grid and returns a boolean mask
+            where True = filter out (set to fill_value)
+        fill_value : float, optional
+            Value to use for filtered points (default: np.nan)
+        
+        Returns
+        -------
+        np.ndarray
+            Filtered grid (original is not modified)
+        
+        Example
+        -------
+        >>> colmax = np.array([[10, 20, 30], [15, 25, 35]])
+        >>> gf = GridFilter()
+        >>> # Filter out values that are not multiples of 5
+        >>> result = gf.apply_custom(colmax, lambda x: x % 5 != 0)
+        """
+        result = grid.copy()
+        mask = func(result)
+        result[mask] = fill_value
+        return result
