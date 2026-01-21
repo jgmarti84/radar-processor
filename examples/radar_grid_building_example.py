@@ -33,7 +33,7 @@ def main():
     # Grid configuration
     grid_resolution = 1500
     cap_z = 12000.0
-    min_radius=250.0 
+    min_radius=250.0
     beam_factor=0.017
     range_max_m = radar.range["data"].max()
     print("Grid configuration:")

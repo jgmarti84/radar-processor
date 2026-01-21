@@ -34,11 +34,10 @@ def get_gate_coordinates(radar) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     gate_x = radar.gate_x['data'].ravel().astype('float32')
     gate_y = radar.gate_y['data'].ravel().astype('float32')
-    gate_z = radar.gate_altitude['data'].ravel().astype('float32')
+    gate_z = radar.gate_z['data'].ravel().astype('float32')
     return gate_x, gate_y, gate_z
 
 def get_field_data(radar, field_name: str) -> np.ndarray:
-# def get_field_data(radar, field_name: str) -> Tuple[np.ndarray, np.ndarray]:
     """
     # Extract flattened field data and mask from a PyART radar object.
     Extract flattened field data from a PyART radar object as a masked array.
@@ -64,13 +63,6 @@ def get_field_data(radar, field_name: str) -> np.ndarray:
     """
     field = radar.fields[field_name]['data']
     
-    # # masked_invalid handles NaN, Inf, and preserves existing mask
-    # field_masked = np.ma.masked_invalid(field)
-    
-    # field_data = np.ma.getdata(field_masked).ravel().astype('float32')
-    # field_mask = np.ma.getmaskarray(field_masked).ravel()
-    
-    # return field_data, field_mask
     return np.ma.masked_invalid(field).ravel().astype('float32')
 
 def get_available_fields(radar) -> list:
